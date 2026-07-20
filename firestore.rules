@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function empresaId() {
+      return request.auth.token.empresaId;
+    }
+
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function isGestor(empId) {
+      return isSignedIn() && empresaId() == empId && role() == 'gestor';
+    }
+
+    function isColaboradorDono(empId, colabId) {
+      return isSignedIn() && empresaId() == empId
+        && role() == 'colaborador'
+        && request.auth.uid == colabId;
+    }
+
+    match /empresas/{empId} {
+      allow read: if isSignedIn() && empresaId() == empId;
+      allow write: if false; // criacao de empresa so via Admin SDK (server)
+
+      match /colaboradores/{colabId} {
+        allow read, write: if isGestor(empId);
+        allow read: if isColaboradorDono(empId, colabId);
+      }
+
+      match /registros/{regId} {
+        allow read, write: if isGestor(empId);
+
+        allow read: if isSignedIn() && empresaId() == empId
+          && role() == 'colaborador'
+          && resource.data.colaboradorId == request.auth.uid;
+
+        allow create: if isSignedIn() && empresaId() == empId
+          && role() == 'colaborador'
+          && request.resource.data.colaboradorId == request.auth.uid
+          && request.resource.data.tipo == 'manual';
+      }
+
+      match /holerites/{holId} {
+        allow read: if isGestor(empId)
+          || (isSignedIn() && empresaId() == empId && role() == 'colaborador'
+              && resource.data.colaboradorId == request.auth.uid);
+        allow write: if false;
+      }
+
+      match /regras/{regrasId} {
+        allow read: if isSignedIn() && empresaId() == empId;
+        allow write: if isGestor(empId);
+      }
+    }
+  }
+}
