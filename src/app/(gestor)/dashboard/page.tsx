@@ -1,6 +1,7 @@
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
-import { calcularDiferencaHoras, horasParaTexto, formatDateISO } from '@/lib/calculos/horas';
+import { horasParaTexto, formatDateISO } from '@/lib/calculos/horas';
+import { classificarHorasRegistro } from '@/lib/calculos/registro';
 import type { Colaborador, RegistroPonto } from '@/types';
 
 export default async function DashboardPage() {
@@ -32,9 +33,8 @@ export default async function DashboardPage() {
       (r) => r.colaboradorId === c.uid && r.data.startsWith(mesAtual) && r.entrada && r.saida
     );
     regsDoMes.forEach((r) => {
-      const total = calcularDiferencaHoras(r.entrada!, r.saida!);
-      const normal = Math.min(total, c.cargaHoraria);
-      totalHE += Math.max(0, total - normal);
+      const classificacao = classificarHorasRegistro(r.data, r.entrada!, r.saida!, c);
+      totalHE += classificacao.horasExtras;
     });
   });
 

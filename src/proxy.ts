@@ -1,4 +1,3 @@
-export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth/session';
@@ -7,7 +6,7 @@ const GESTOR_PREFIX = '/dashboard';
 const GESTOR_PATHS = ['/dashboard', '/colaboradores', '/registros', '/holerites', '/regras'];
 const COLABORADOR_PATHS = ['/meu-ponto', '/meus-registros', '/meu-holerite'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isGestorPath = GESTOR_PATHS.some((p) => pathname.startsWith(p));
   const isColaboradorPath = COLABORADOR_PATHS.some((p) => pathname.startsWith(p));

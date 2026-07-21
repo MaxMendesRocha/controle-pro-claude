@@ -1,4 +1,8 @@
+// src/types/index.ts
 export type Role = 'gestor' | 'colaborador';
+
+/** 0 = domingo, 1 = segunda, 2 = terca, 3 = quarta, 4 = quinta, 5 = sexta, 6 = sabado */
+export type DiaDaSemana = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface Colaborador {
   id: string;
@@ -10,6 +14,8 @@ export interface Colaborador {
   cargo: string;
   salarioBase: number;
   cargaHoraria: number; // horas/dia
+  /** Dias da semana considerados jornada normal para este colaborador (ex: [1,2,3,4,5] = seg a sex) */
+  diasTrabalho: DiaDaSemana[];
   admissao: string; // ISO date (YYYY-MM-DD)
   banco?: string;
   ativo: boolean;

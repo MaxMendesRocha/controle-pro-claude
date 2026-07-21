@@ -21,3 +21,27 @@ export function horasParaTexto(horas: number): string {
 export function formatDateISO(date: Date): string {
   return date.toISOString().split('T')[0];
 }
+
+// adicionar ao final de src/lib/calculos/horas.ts
+
+/** Formata um Date para "HH:mm" no fuso de Brasilia, independente do fuso do servidor */
+export function formatTimeBR(date: Date): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+}
+
+/** Formata um Date para "YYYY-MM-DD" no fuso de Brasilia (evita erro de "dia errado" perto da meia-noite) */
+export function formatDateISOBR(date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
