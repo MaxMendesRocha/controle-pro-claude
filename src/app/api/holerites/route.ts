@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
 import { calcularHolerite } from '@/lib/calculos/holerite';
+import { calcularPeriodo } from '@/lib/calculos/periodo';
 import type { Colaborador, RegistroPonto, RegrasCalculo, Holerite } from '@/types';
 
 const DEFAULTS_REGRAS: Omit<RegrasCalculo, 'empresaId'> = {
@@ -13,6 +14,7 @@ const DEFAULTS_REGRAS: Omit<RegrasCalculo, 'empresaId'> = {
   heDomingoFeriadoPercent: 100,
   limiteHEMensal: 40,
   descontoFaltaPercent: 100,
+  diaFechamento: 0,
 };
 
 export async function GET(request: NextRequest) {
@@ -65,6 +67,8 @@ export async function POST(request: NextRequest) {
     ? (regrasDoc.data() as RegrasCalculo)
     : { empresaId: user.empresaId, ...DEFAULTS_REGRAS };
 
+  const periodo = calcularPeriodo(mes, regras.diaFechamento);
+
   const todosRegistros = registrosSnap.docs.map((d) => d.data() as RegistroPonto);
 
   if (colaboradores.length === 0) {
@@ -75,11 +79,14 @@ export async function POST(request: NextRequest) {
   const batch = adminDb.batch();
 
   for (const colaborador of colaboradores) {
-    const registrosDoMes = todosRegistros.filter(
-      (r) => r.colaboradorId === colaborador.uid && r.data.startsWith(mes)
+    const registrosDoPeriodo = todosRegistros.filter(
+      (r) =>
+        r.colaboradorId === colaborador.uid &&
+        r.data >= periodo.inicio &&
+        r.data <= periodo.fim
     );
 
-    const { holerite, avisos } = calcularHolerite(colaborador, registrosDoMes, regras, mes);
+    const { holerite, avisos } = calcularHolerite(colaborador, registrosDoPeriodo, regras, mes, periodo);
 
     const docId = `${mes}_${colaborador.uid}`;
     const docRef = empresaRef.collection('holerites').doc(docId);
@@ -91,5 +98,5 @@ export async function POST(request: NextRequest) {
 
   await batch.commit();
 
-  return NextResponse.json({ ok: true, mes, resultados }, { status: 201 });
+  return NextResponse.json({ ok: true, mes, periodo, resultados }, { status: 201 });
 }

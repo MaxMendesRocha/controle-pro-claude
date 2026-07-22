@@ -12,6 +12,7 @@ const DEFAULTS: Omit<RegrasCalculo, 'empresaId'> = {
   heDomingoFeriadoPercent: 100,
   limiteHEMensal: 40,
   descontoFaltaPercent: 100,
+  diaFechamento: 0,
 };
 
 export default async function RegrasPage() {
@@ -23,8 +24,9 @@ export default async function RegrasPage() {
     .collection('regras').doc('config')
     .get();
 
-  const regras: RegrasCalculo = doc.exists
-    ? (doc.data() as RegrasCalculo)
+  const dados = doc.exists ? (doc.data() as RegrasCalculo) : null;
+  const regras: RegrasCalculo = dados
+    ? { ...dados, diaFechamento: dados.diaFechamento ?? 0 }
     : { empresaId: user.empresaId, ...DEFAULTS };
 
   return (

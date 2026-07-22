@@ -34,7 +34,9 @@ export default async function MeuHoleritePage({
   const holerite = holeriteDoc.exists ? (holeriteDoc.data() as Holerite) : null;
 
   const currency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  const totalHE = holerite ? holerite.totalHorasExtras + holerite.totalHorasExtrasDomingoFeriado : 0;
+  const temSeparacao = holerite
+    ? holerite.valorHorasExtras50 !== undefined && holerite.valorHorasExtras100 !== undefined
+    : false;
   const totalVencimentos = holerite ? holerite.salarioBase + holerite.valorHorasExtras : 0;
 
   return (
@@ -58,6 +60,11 @@ export default async function MeuHoleritePage({
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">RECIBO DE PAGAMENTO</h2>
             <p className="text-sm text-gray-500">Referencia: {holerite.mes}</p>
+            {holerite.periodoInicio && holerite.periodoFim && (
+              <p className="text-xs text-gray-400">
+                Periodo: {formatDateBR(holerite.periodoInicio)} a {formatDateBR(holerite.periodoFim)}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
@@ -89,14 +96,39 @@ export default async function MeuHoleritePage({
                 <td className="text-right">{currency(holerite.salarioBase)}</td>
                 <td className="text-right">-</td>
               </tr>
-              {holerite.valorHorasExtras > 0 && (
-                <tr className="border-b border-gray-200">
-                  <td className="py-2">Horas Extras</td>
-                  <td className="text-right">{horasParaTexto(totalHE)}</td>
-                  <td className="text-right">{currency(holerite.valorHorasExtras)}</td>
-                  <td className="text-right">-</td>
-                </tr>
+
+              {temSeparacao ? (
+                <>
+                  {holerite.totalHorasExtras > 0 && (
+                    <tr className="border-b border-gray-200">
+                      <td className="py-2">Horas Extras 50%</td>
+                      <td className="text-right">{horasParaTexto(holerite.totalHorasExtras)}</td>
+                      <td className="text-right">{currency(holerite.valorHorasExtras50)}</td>
+                      <td className="text-right">-</td>
+                    </tr>
+                  )}
+                  {holerite.totalHorasExtrasDomingoFeriado > 0 && (
+                    <tr className="border-b border-gray-200">
+                      <td className="py-2">Horas Extras 100%</td>
+                      <td className="text-right">{horasParaTexto(holerite.totalHorasExtrasDomingoFeriado)}</td>
+                      <td className="text-right">{currency(holerite.valorHorasExtras100)}</td>
+                      <td className="text-right">-</td>
+                    </tr>
+                  )}
+                </>
+              ) : (
+                holerite.valorHorasExtras > 0 && (
+                  <tr className="border-b border-gray-200">
+                    <td className="py-2">Horas Extras</td>
+                    <td className="text-right">
+                      {horasParaTexto(holerite.totalHorasExtras + holerite.totalHorasExtrasDomingoFeriado)}
+                    </td>
+                    <td className="text-right">{currency(holerite.valorHorasExtras)}</td>
+                    <td className="text-right">-</td>
+                  </tr>
+                )
               )}
+
               {holerite.descontoFaltas > 0 && (
                 <tr className="border-b border-gray-200">
                   <td className="py-2">Desconto de Faltas</td>

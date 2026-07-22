@@ -46,18 +46,27 @@ export interface RegrasCalculo {
   heDomingoFeriadoPercent: number;
   limiteHEMensal: number;
   descontoFaltaPercent: number;
+  /** Dia do mes em que a folha fecha (1-28). 0 = mes calendario completo (padrao). */
+  diaFechamento: number;
 }
 
 export interface Holerite {
   id: string;
   empresaId: string;
   colaboradorId: string;
-  mes: string; // YYYY-MM
+  mes: string; // YYYY-MM - mes de referencia (mes em que o periodo fecha)
+  periodoInicio: string; // YYYY-MM-DD
+  periodoFim: string; // YYYY-MM-DD
   diasTrabalhados: number;
   totalHorasNormais: number;
-  totalHorasExtras: number;
-  totalHorasExtrasDomingoFeriado: number;
+  totalHorasExtras: number; // horas extras a 50% (dias uteis da escala)
+  totalHorasExtrasDomingoFeriado: number; // horas extras a 100% (fora da escala/feriado)
   salarioBase: number;
+  /** valor em R$ das horas extras a 50% (dias uteis da escala) */
+  valorHorasExtras50: number;
+  /** valor em R$ das horas extras a 100% (fora da escala/feriado) */
+  valorHorasExtras100: number;
+  /** soma de valorHorasExtras50 + valorHorasExtras100 - mantido para compatibilidade com holerites antigos */
   valorHorasExtras: number;
   descontoFaltas: number;
   inss: number;

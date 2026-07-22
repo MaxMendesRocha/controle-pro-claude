@@ -46,6 +46,7 @@ function HoleritePDF({ holerite, colaborador }: { holerite: Holerite; colaborado
   const totalHE = holerite.totalHorasExtras + holerite.totalHorasExtrasDomingoFeriado;
   const totalVencimentos = holerite.salarioBase + holerite.valorHorasExtras;
   const totalDescontos = holerite.inss + holerite.descontoFaltas;
+  const temSeparacao = holerite.valorHorasExtras50 !== undefined && holerite.valorHorasExtras100 !== undefined;
 
   return (
     <Document>
@@ -53,6 +54,9 @@ function HoleritePDF({ holerite, colaborador }: { holerite: Holerite; colaborado
         <View style={styles.header}>
           <Text style={styles.title}>RECIBO DE PAGAMENTO</Text>
           <Text style={styles.subtitle}>Referencia: {holerite.mes}</Text>
+          {holerite.periodoInicio && holerite.periodoFim && (
+            <Text style={styles.subtitle}>Periodo: {formatDateBR(holerite.periodoInicio)} a {formatDateBR(holerite.periodoFim)}</Text>
+          )}
         </View>
 
         <View style={styles.infoRow}>
@@ -83,13 +87,34 @@ function HoleritePDF({ holerite, colaborador }: { holerite: Holerite; colaborado
             <Text style={styles.colDesconto}>-</Text>
           </View>
 
-          {holerite.valorHorasExtras > 0 && (
-            <View style={styles.tableRow}>
-              <Text style={styles.colDescricao}>Horas Extras</Text>
-              <Text style={styles.colReferencia}>{horasParaTexto(totalHE)}</Text>
-              <Text style={styles.colVencimento}>{currency(holerite.valorHorasExtras)}</Text>
-              <Text style={styles.colDesconto}>-</Text>
-            </View>
+          {temSeparacao ? (
+            <>
+              {holerite.totalHorasExtras > 0 && (
+                <View style={styles.tableRow}>
+                  <Text style={styles.colDescricao}>Horas Extras 50%</Text>
+                  <Text style={styles.colReferencia}>{horasParaTexto(holerite.totalHorasExtras)}</Text>
+                  <Text style={styles.colVencimento}>{currency(holerite.valorHorasExtras50)}</Text>
+                  <Text style={styles.colDesconto}>-</Text>
+                </View>
+              )}
+              {holerite.totalHorasExtrasDomingoFeriado > 0 && (
+                <View style={styles.tableRow}>
+                  <Text style={styles.colDescricao}>Horas Extras 100%</Text>
+                  <Text style={styles.colReferencia}>{horasParaTexto(holerite.totalHorasExtrasDomingoFeriado)}</Text>
+                  <Text style={styles.colVencimento}>{currency(holerite.valorHorasExtras100)}</Text>
+                  <Text style={styles.colDesconto}>-</Text>
+                </View>
+              )}
+            </>
+          ) : (
+            holerite.valorHorasExtras > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={styles.colDescricao}>Horas Extras</Text>
+                <Text style={styles.colReferencia}>{horasParaTexto(totalHE)}</Text>
+                <Text style={styles.colVencimento}>{currency(holerite.valorHorasExtras)}</Text>
+                <Text style={styles.colDesconto}>-</Text>
+              </View>
+            )
           )}
 
           {holerite.descontoFaltas > 0 && (

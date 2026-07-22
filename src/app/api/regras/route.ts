@@ -12,6 +12,7 @@ const DEFAULTS: Omit<RegrasCalculo, 'empresaId'> = {
   heDomingoFeriadoPercent: 100,
   limiteHEMensal: 40,
   descontoFaltaPercent: 100,
+  diaFechamento: 0,
 };
 
 export async function GET() {
@@ -29,7 +30,13 @@ export async function GET() {
     return NextResponse.json({ regras: { empresaId: user.empresaId, ...DEFAULTS } });
   }
 
-  return NextResponse.json({ regras: doc.data() as RegrasCalculo });
+  const dados = doc.data() as RegrasCalculo;
+  // compatibilidade com empresas criadas antes deste campo existir
+  if (dados.diaFechamento === undefined) {
+    dados.diaFechamento = 0;
+  }
+
+  return NextResponse.json({ regras: dados });
 }
 
 export async function PUT(request: NextRequest) {
@@ -48,6 +55,7 @@ export async function PUT(request: NextRequest) {
     'heDomingoFeriadoPercent',
     'limiteHEMensal',
     'descontoFaltaPercent',
+    'diaFechamento',
   ];
 
   const regrasValidadas: Partial<Record<keyof typeof DEFAULTS, number>> = {};
@@ -76,6 +84,9 @@ export async function PUT(request: NextRequest) {
   if (regrasValidadas.descontoFaltaPercent! > 100) {
     return NextResponse.json({ error: 'Desconto de falta nao pode passar de 100% do dia' }, { status: 400 });
   }
+  if (regrasValidadas.diaFechamento! > 28) {
+    return NextResponse.json({ error: 'Dia de fechamento deve ser entre 0 (mes calendario) e 28' }, { status: 400 });
+  }
 
   const regras: RegrasCalculo = {
     empresaId: user.empresaId,
@@ -86,6 +97,7 @@ export async function PUT(request: NextRequest) {
     heDomingoFeriadoPercent: regrasValidadas.heDomingoFeriadoPercent!,
     limiteHEMensal: regrasValidadas.limiteHEMensal!,
     descontoFaltaPercent: regrasValidadas.descontoFaltaPercent!,
+    diaFechamento: regrasValidadas.diaFechamento!,
   };
 
   await adminDb

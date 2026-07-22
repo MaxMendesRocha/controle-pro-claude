@@ -7,6 +7,11 @@ import { FiltrosHolerites } from '@/components/holerites/FiltrosHolerites';
 import { BaixarPdfButton } from '@/components/holerites/BaixarPdfButton';
 import type { Colaborador, Holerite } from '@/types';
 
+function formatDateBR(dataISO: string) {
+  const [ano, mes, dia] = dataISO.split('-');
+  return `${dia}/${mes}/${ano}`;
+}
+
 export default async function HoleritesPage({
   searchParams,
 }: {
@@ -69,7 +74,9 @@ export default async function HoleritesPage({
 
         {holerites.map((h) => {
           const colaborador = colaboradoresPorId.get(h.colaboradorId);
-          const totalHE = h.totalHorasExtras + h.totalHorasExtrasDomingoFeriado;
+          // fallback para holerites gerados antes da separacao 50%/100% existir
+          const temSeparacao = h.valorHorasExtras50 !== undefined && h.valorHorasExtras100 !== undefined;
+
           return (
             <div key={h.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
@@ -82,19 +89,47 @@ export default async function HoleritesPage({
                     <p className="text-xs text-gray-500">{colaborador?.cargo ?? ''}</p>
                   </div>
                 </div>
-                <span className="text-sm font-medium text-gray-500">{h.mes}</span>
+                <div className="text-right">
+                  <span className="text-sm font-medium text-gray-500 block">{h.mes}</span>
+                  {h.periodoInicio && h.periodoFim && (
+                    <span className="text-xs text-gray-400">
+                      {formatDateBR(h.periodoInicio)} a {formatDateBR(h.periodoFim)}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="p-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Salario Base</span>
                   <span className="font-medium">{currency(h.salarioBase)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">
-                    Horas Extras ({horasParaTexto(totalHE)})
-                  </span>
-                  <span className="font-medium text-amber-600">+ {currency(h.valorHorasExtras)}</span>
-                </div>
+
+                {temSeparacao ? (
+                  <>
+                    {h.totalHorasExtras > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">HE 50% ({horasParaTexto(h.totalHorasExtras)})</span>
+                        <span className="font-medium text-amber-600">+ {currency(h.valorHorasExtras50)}</span>
+                      </div>
+                    )}
+                    {h.totalHorasExtrasDomingoFeriado > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">HE 100% ({horasParaTexto(h.totalHorasExtrasDomingoFeriado)})</span>
+                        <span className="font-medium text-purple-600">+ {currency(h.valorHorasExtras100)}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  h.valorHorasExtras > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">
+                        Horas Extras ({horasParaTexto(h.totalHorasExtras + h.totalHorasExtrasDomingoFeriado)})
+                      </span>
+                      <span className="font-medium text-amber-600">+ {currency(h.valorHorasExtras)}</span>
+                    </div>
+                  )
+                )}
+
                 {h.descontoFaltas > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Desconto Faltas</span>

@@ -17,6 +17,7 @@ export function RegrasForm({ regrasIniciais }: { regrasIniciais: RegrasCalculo }
     heDomingoFeriadoPercent: regrasIniciais.heDomingoFeriadoPercent,
     limiteHEMensal: regrasIniciais.limiteHEMensal,
     descontoFaltaPercent: regrasIniciais.descontoFaltaPercent,
+    diaFechamento: regrasIniciais.diaFechamento ?? 0,
   });
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState(false);
@@ -142,7 +143,25 @@ export function RegrasForm({ regrasIniciais }: { regrasIniciais: RegrasCalculo }
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Fechamento da Folha</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Dia de Fechamento</label>
+            <input
+              type="number" min="0" max="28"
+              value={form.diaFechamento}
+              onChange={(e) => update('diaFechamento', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              0 = mes calendario (padrao). Ex: 25 = periodo fecha todo dia 25, comecando no dia 26 do mes anterior.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between lg:col-span-2">
         <div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">Salvar Alteracoes</h3>
           <p className="text-sm text-gray-500 mb-4">
@@ -156,7 +175,7 @@ export function RegrasForm({ regrasIniciais }: { regrasIniciais: RegrasCalculo }
           <button
             type="submit"
             disabled={salvando}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition"
+            className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-2.5 px-6 rounded-lg transition"
           >
             {salvando ? 'Salvando...' : 'Salvar Regras'}
           </button>
