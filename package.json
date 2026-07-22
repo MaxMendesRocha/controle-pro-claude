@@ -9,6 +9,9 @@
     "lint": "eslint",
     "seed:gestor": "node --env-file=.env.local --import tsx scripts/seed-gestor.ts"
   },
+    "overrides": {
+    "jose": "^4.15.5"
+  },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
     "firebase": "^12.16.0",
