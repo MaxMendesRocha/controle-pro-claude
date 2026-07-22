@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   const { id } = await params;
   const body = await request.json();
-  const { entrada, saida, motivo } = body;
+  const { entrada, saida, motivo, intervaloNaoUsufruido } = body;
 
   if (!entrada || !saida || !motivo?.trim()) {
     return NextResponse.json({ error: 'Preencha entrada, saida e motivo' }, { status: 400 });
@@ -38,6 +38,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     tipo: 'manual',
     editadoPor: user.uid,
     editadoEm: new Date().toISOString(),
+    intervaloNaoUsufruido: Boolean(intervaloNaoUsufruido),
   });
 
   return NextResponse.json({ ok: true });

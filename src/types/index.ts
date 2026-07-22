@@ -35,6 +35,8 @@ export interface RegistroPonto {
   editadoPor?: string | null; // uid do gestor, se editado
   editadoEm?: string | null; // ISO timestamp
   criadoEm: string; // ISO timestamp - server timestamp
+  /** true = o intervalo intrajornada nao foi de fato usufruido neste dia; nao descontar automaticamente */
+  intervaloNaoUsufruido?: boolean;
 }
 
 export interface RegrasCalculo {
@@ -62,6 +64,8 @@ export interface Holerite {
   totalHorasExtras: number; // horas extras a 50% (dias uteis da escala)
   totalHorasExtrasDomingoFeriado: number; // horas extras a 100% (fora da escala/feriado)
   salarioBase: number;
+  /** divisor mensal usado para calcular o valor da hora (cargaHoraria x dias/semana x 5) */
+  divisorMensal: number;
   /** valor em R$ das horas extras a 50% (dias uteis da escala) */
   valorHorasExtras50: number;
   /** valor em R$ das horas extras a 100% (fora da escala/feriado) */

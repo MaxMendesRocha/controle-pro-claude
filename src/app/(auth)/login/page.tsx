@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
+import { LogoFull } from '@/components/ui/Logo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,10 +51,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-600 to-indigo-800">
+    <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-blue-600 to-indigo-800">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">PontoPro</h1>
+          <div className="flex justify-center mb-3">
+            <LogoFull width={220} />
+          </div>
           <p className="text-gray-500 mt-1">Sistema de Controle de Ponto</p>
         </div>
 

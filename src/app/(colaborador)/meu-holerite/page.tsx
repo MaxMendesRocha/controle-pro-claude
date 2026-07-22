@@ -92,7 +92,7 @@ export default async function MeuHoleritePage({
             <tbody>
               <tr className="border-b border-gray-200">
                 <td className="py-2">Salario Base</td>
-                <td className="text-right">220h</td>
+                <td className="text-right">{holerite.divisorMensal ? `${holerite.divisorMensal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}h` : '220,00h'}</td>
                 <td className="text-right">{currency(holerite.salarioBase)}</td>
                 <td className="text-right">-</td>
               </tr>

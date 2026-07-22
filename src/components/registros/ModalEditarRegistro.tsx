@@ -18,6 +18,7 @@ export function ModalEditarRegistro({
   const [entrada, setEntrada] = useState(registro.entrada || '');
   const [saida, setSaida] = useState(registro.saida || '');
   const [motivo, setMotivo] = useState('');
+  const [intervaloNaoUsufruido, setIntervaloNaoUsufruido] = useState(Boolean(registro.intervaloNaoUsufruido));
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
@@ -30,7 +31,7 @@ export function ModalEditarRegistro({
     const res = await fetch(`/api/registros/${registro.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entrada, saida, motivo }),
+      body: JSON.stringify({ entrada, saida, motivo, intervaloNaoUsufruido }),
     });
 
     setSalvando(false);
@@ -91,6 +92,15 @@ export function ModalEditarRegistro({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={intervaloNaoUsufruido}
+              onChange={(e) => setIntervaloNaoUsufruido(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            Intervalo nao foi usufruido neste dia
+          </label>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Motivo da Edicao *</label>
             <textarea required value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={2}

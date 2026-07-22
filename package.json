@@ -7,7 +7,10 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "seed:gestor": "node --env-file=.env.local --import tsx scripts/seed-gestor.ts"
+    "seed:gestor": "node --env-file=.env.local --import tsx scripts/seed-gestor.ts",
+    "fix:claims": "node --env-file=.env.local --import tsx scripts/fix-claims.ts",
+    "fix:colaborador-doc": "node --env-file=.env.local --import tsx scripts/fix-colaborador-doc-id.ts",
+    "fix:registros": "node --env-file=.env.local --import tsx scripts/fix-registros-colaborador-id.ts"
   },
     "overrides": {
     "jose": "^4.15.5"
@@ -32,4 +35,5 @@
     "tsx": "^4.23.1",
     "typescript": "^5"
   }
+  
 }

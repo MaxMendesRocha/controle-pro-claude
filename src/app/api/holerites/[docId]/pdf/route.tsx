@@ -82,7 +82,7 @@ function HoleritePDF({ holerite, colaborador }: { holerite: Holerite; colaborado
 
           <View style={styles.tableRow}>
             <Text style={styles.colDescricao}>Salario Base</Text>
-            <Text style={styles.colReferencia}>220h</Text>
+            <Text style={styles.colReferencia}>{holerite.divisorMensal ? `${holerite.divisorMensal.toFixed(2).replace('.', ',')}h` : '220,00h'}</Text>
             <Text style={styles.colVencimento}>{currency(holerite.salarioBase)}</Text>
             <Text style={styles.colDesconto}>-</Text>
           </View>

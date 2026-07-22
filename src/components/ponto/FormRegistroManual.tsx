@@ -1,5 +1,6 @@
 'use client';
 
+// src/components/ponto/FormRegistroManual.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -10,6 +11,7 @@ export function FormRegistroManual() {
   const [entrada, setEntrada] = useState('');
   const [saida, setSaida] = useState('');
   const [motivo, setMotivo] = useState('');
+  const [intervaloNaoUsufruido, setIntervaloNaoUsufruido] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
 
@@ -21,7 +23,7 @@ export function FormRegistroManual() {
     const res = await fetch('/api/ponto', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipo: 'manual', data, entrada, saida, motivo }),
+      body: JSON.stringify({ tipo: 'manual', data, entrada, saida, motivo, intervaloNaoUsufruido }),
     });
 
     setSalvando(false);
@@ -32,7 +34,7 @@ export function FormRegistroManual() {
       return;
     }
 
-    setData(''); setEntrada(''); setSaida(''); setMotivo('');
+    setData(''); setEntrada(''); setSaida(''); setMotivo(''); setIntervaloNaoUsufruido(false);
     setAberto(false);
     router.refresh();
   }
@@ -81,6 +83,15 @@ export function FormRegistroManual() {
               placeholder="Ex: Esqueci de bater o ponto"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={intervaloNaoUsufruido}
+              onChange={(e) => setIntervaloNaoUsufruido(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            Intervalo nao foi usufruido neste dia
+          </label>
 
           {erro && <p className="text-sm text-red-600">{erro}</p>}
 

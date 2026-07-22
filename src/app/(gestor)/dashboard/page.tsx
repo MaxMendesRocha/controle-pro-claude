@@ -24,7 +24,8 @@ export default async function DashboardPage() {
   const trabalhandoAgora = registros.filter((r) => r.data === hoje && r.entrada && !r.saida).length;
 
   const mesAtual = new Date().toISOString().slice(0, 7);
-  let totalHE = 0;
+  let totalHE50 = 0;
+  let totalHE100 = 0;
   let totalFolha = 0;
 
   colaboradores.forEach((c) => {
@@ -33,15 +34,20 @@ export default async function DashboardPage() {
       (r) => r.colaboradorId === c.uid && r.data.startsWith(mesAtual) && r.entrada && r.saida
     );
     regsDoMes.forEach((r) => {
-      const classificacao = classificarHorasRegistro(r.data, r.entrada!, r.saida!, c);
-      totalHE += classificacao.horasExtras;
+      const classificacao = classificarHorasRegistro(r.data, r.entrada!, r.saida!, c, r.intervaloNaoUsufruido ?? false);
+      if (classificacao.ehDiaExtra) {
+        totalHE100 += classificacao.horasExtras;
+      } else {
+        totalHE50 += classificacao.horasExtras;
+      }
     });
   });
 
   const cards = [
     { label: 'Colaboradores', valor: totalAtivos.toString(), cor: 'text-gray-900' },
     { label: 'Trabalhando Agora', valor: trabalhandoAgora.toString(), cor: 'text-emerald-600' },
-    { label: 'Horas Extras (Mes)', valor: horasParaTexto(totalHE), cor: 'text-amber-600' },
+    { label: 'HE 50% (Mes)', valor: horasParaTexto(totalHE50), cor: 'text-amber-600' },
+    { label: 'HE 100% (Mes)', valor: horasParaTexto(totalHE100), cor: 'text-purple-600' },
     {
       label: 'Folha do Mes',
       valor: totalFolha.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
@@ -53,7 +59,7 @@ export default async function DashboardPage() {
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {cards.map((card) => (
           <div key={card.label} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
             <p className="text-sm text-gray-500">{card.label}</p>

@@ -13,6 +13,15 @@
 // suportar tanto mes calendario quanto fechamento customizado (ex: 26 a 25)
 // sem duplicar essa logica aqui.
 //
+// O valor da hora e calculado com um divisor mensal DINAMICO por colaborador:
+// cargaHoraria diaria x dias de trabalho/semana x (30/7). O (30/7) converte
+// a carga semanal para uma media mensal usando o calendario real (30 dias
+// do mes dividido pelos 7 dias da semana) - essa e a formula tecnicamente
+// mais correta para quem nao trabalha sabado (referenciada pela Sumula 431
+// do TST), diferente da formula alternativa "x5" (que pressupoe implicitamente
+// uma semana de 6 dias uteis, subestimando o valor da hora de quem folga
+// aos sabados). Ex: 25h semanais (5h/dia, seg-sex) -> divisor ~107,1h.
+//
 // Regra de dias uteis adotada: cada colaborador tem seu proprio conjunto
 // de "dias de trabalho normais" (campo colaborador.diasTrabalho, ex: seg-sex).
 // Qualquer dia que nao esteja nesse conjunto, OU que seja feriado nacional
@@ -25,7 +34,6 @@ import { isDiaExtra, DIAS_TRABALHO_PADRAO } from './diasTrabalho';
 import type { PeriodoFolha } from './periodo';
 import type { Colaborador, RegistroPonto, RegrasCalculo, Holerite, DiaDaSemana } from '@/types';
 
-const DIVISOR_HORA_MENSAL = 220; // padrao CLT para jornada de 44h semanais
 
 /** Tabela INSS progressiva (valores de referencia - conferir atualizacao anual) */
 function calcularINSS(baseCalculo: number): number {
@@ -43,19 +51,24 @@ function formatarData(data: Date): string {
   return `${ano}-${mes}-${dia}`;
 }
 
-/** Conta quantos dias de trabalho normais (segundo a escala do colaborador) existem entre inicio e fim, inclusive */
-function contarDiasUteisEsperados(inicio: string, fim: string, diasTrabalho: DiaDaSemana[]): number {
-  let count = 0;
+/** Lista as datas (YYYY-MM-DD) de trabalho normal esperadas (segundo a escala do colaborador) entre inicio e fim, inclusive */
+function listarDiasUteisEsperados(inicio: string, fim: string, diasTrabalho: DiaDaSemana[]): string[] {
+  const datas: string[] = [];
   const cursor = new Date(inicio + 'T12:00:00');
   const fimDate = new Date(fim + 'T12:00:00');
 
   while (cursor <= fimDate) {
     const dataStr = formatarData(cursor);
-    if (!isDiaExtra(dataStr, diasTrabalho)) count++;
+    if (!isDiaExtra(dataStr, diasTrabalho)) datas.push(dataStr);
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  return count;
+  return datas;
+}
+
+function formatarDataBR(dataISO: string): string {
+  const [, mes, dia] = dataISO.split('-');
+  return `${dia}/${mes}`;
 }
 
 export interface ResultadoCalculoHolerite {
@@ -93,9 +106,9 @@ export function calcularHolerite(
   let totalHorasExtrasDomingoFeriado = 0; // qualquer hora trabalhada fora da escala normal (100%)
 
   for (const registro of registrosCompletos) {
-    const classificacao = classificarHorasRegistro(registro.data, registro.entrada!, registro.saida!, colaborador);
+    const classificacao = classificarHorasRegistro(registro.data, registro.entrada!, registro.saida!, colaborador, registro.intervaloNaoUsufruido ?? false);
 
-    if (classificacao.totalHoras <= 0) {
+    if (classificacao.totalHorasBruto <= 0) {
       avisos.push(`Registro de ${registro.data} tem duracao invalida (saida antes ou igual a entrada) - ignorado no calculo`);
       continue;
     }
@@ -119,12 +132,16 @@ export function calcularHolerite(
 
   const hojeStr = formatarData(hoje);
   const ateData = hojeStr < periodo.fim ? hojeStr : periodo.fim;
-  const diasUteisEsperados = contarDiasUteisEsperados(periodo.inicio, ateData, diasTrabalho);
+  const diasUteisEsperados = listarDiasUteisEsperados(periodo.inicio, ateData, diasTrabalho);
 
-  const diasNormaisTrabalhados = registrosCompletos.filter((r) => !isDiaExtra(r.data, diasTrabalho)).length;
-  const faltas = Math.max(0, diasUteisEsperados - diasNormaisTrabalhados);
+  const datasTrabalhadas = new Set(
+    registrosCompletos.filter((r) => !isDiaExtra(r.data, diasTrabalho)).map((r) => r.data)
+  );
+  const datasFaltantes = diasUteisEsperados.filter((d) => !datasTrabalhadas.has(d));
+  const faltas = datasFaltantes.length;
 
-  const valorHora = colaborador.salarioBase / DIVISOR_HORA_MENSAL;
+  const divisorMensal = (colaborador.cargaHoraria * diasTrabalho.length * 30) / 7;
+  const valorHora = colaborador.salarioBase / divisorMensal;
 
   const valorHorasExtras50 = totalHorasExtras * valorHora * (1 + regras.heUtilPercent / 100);
   const valorHorasExtras100 = totalHorasExtrasDomingoFeriado * valorHora * (1 + regras.heDomingoFeriadoPercent / 100);
@@ -140,7 +157,12 @@ export function calcularHolerite(
   const liquido = remuneracaoBruta - inss;
 
   if (faltas > 0) {
-    avisos.push(`${faltas} falta(s) nao justificada(s) detectada(s) neste periodo (dias da escala normal)`);
+    const datasFormatadas = datasFaltantes.map(formatarDataBR);
+    const LIMITE_EXIBICAO = 15;
+    const listaTexto = datasFormatadas.length > LIMITE_EXIBICAO
+      ? `${datasFormatadas.slice(0, LIMITE_EXIBICAO).join(', ')} e mais ${datasFormatadas.length - LIMITE_EXIBICAO} dia(s)`
+      : datasFormatadas.join(', ');
+    avisos.push(`${faltas} falta(s) nao justificada(s) detectada(s) neste periodo (dias da escala normal): ${listaTexto}`);
   }
 
   const holerite: Omit<Holerite, 'id'> = {
@@ -154,6 +176,7 @@ export function calcularHolerite(
     totalHorasExtras,
     totalHorasExtrasDomingoFeriado,
     salarioBase: colaborador.salarioBase,
+    divisorMensal,
     valorHorasExtras50,
     valorHorasExtras100,
     valorHorasExtras: valorHorasExtras50 + valorHorasExtras100,

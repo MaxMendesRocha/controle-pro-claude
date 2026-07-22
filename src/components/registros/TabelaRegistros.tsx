@@ -51,7 +51,9 @@ export function TabelaRegistros({
                 let ehDiaExtra = false;
 
                 if (r.entrada && r.saida && colaborador) {
-                  const classificacao = classificarHorasRegistro(r.data, r.entrada, r.saida, colaborador);
+                  const classificacao = classificarHorasRegistro(
+                    r.data, r.entrada, r.saida, colaborador, r.intervaloNaoUsufruido ?? false
+                  );
                   total = horasParaTexto(classificacao.totalHoras);
                   extras = classificacao.horasExtras > 0 ? horasParaTexto(classificacao.horasExtras) : '--:--';
                   ehDiaExtra = classificacao.ehDiaExtra;
@@ -64,6 +66,11 @@ export function TabelaRegistros({
                       {ehDiaExtra && (
                         <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-700">
                           Extra
+                        </span>
+                      )}
+                      {r.intervaloNaoUsufruido && (
+                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-100 text-orange-700">
+                          Sem intervalo
                         </span>
                       )}
                     </td>

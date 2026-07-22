@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
   // ---------- Registro manual (data passada, entrada+saida informadas junto) ----------
   if (tipo === 'manual') {
-    const { data, entrada, saida, motivo } = body;
+    const { data, entrada, saida, motivo, intervaloNaoUsufruido } = body;
 
     if (!data || !entrada || !saida || !motivo?.trim()) {
       return NextResponse.json({ error: 'Preencha data, entrada, saida e motivo' }, { status: 400 });
@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       tipo: 'manual',
       motivo: motivo.trim(),
       criadoEm: new Date().toISOString(),
+      intervaloNaoUsufruido: Boolean(intervaloNaoUsufruido),
     };
 
     await docRef.set(novoRegistro);
@@ -109,6 +110,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Jornada de hoje ja foi finalizada' }, { status: 409 });
   }
 
-  await doc.ref.update({ saida: horaAtual });
+  const { intervaloNaoUsufruido } = body;
+  await doc.ref.update({ saida: horaAtual, intervaloNaoUsufruido: Boolean(intervaloNaoUsufruido) });
   return NextResponse.json({ saida: horaAtual });
 }

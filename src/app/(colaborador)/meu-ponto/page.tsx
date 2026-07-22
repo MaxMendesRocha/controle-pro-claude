@@ -32,6 +32,7 @@ export default async function MeuPontoPage() {
   let acao: React.ReactNode = <BaterPontoButton tipo="entrada" />;
   let total = '--:--';
   let extras = '--:--';
+  let intervaloTexto: string | null = null;
 
   const hojeEhDiaExtra = colaborador ? isDiaExtra(hojeISO, colaborador.diasTrabalho) : false;
 
@@ -39,9 +40,20 @@ export default async function MeuPontoPage() {
     statusLabel = 'Jornada finalizada';
     statusCor = 'bg-gray-100 text-gray-600';
     acao = null;
-    const classificacao = classificarHorasRegistro(registro.data, registro.entrada, registro.saida, colaborador);
+    const classificacao = classificarHorasRegistro(
+      registro.data,
+      registro.entrada,
+      registro.saida,
+      colaborador,
+      registro.intervaloNaoUsufruido ?? false
+    );
     total = horasParaTexto(classificacao.totalHoras);
     extras = classificacao.horasExtras > 0 ? horasParaTexto(classificacao.horasExtras) : '--:--';
+    intervaloTexto = classificacao.intervaloMinutos > 0
+      ? `${classificacao.intervaloMinutos} min de intervalo descontados automaticamente`
+      : registro.intervaloNaoUsufruido
+        ? 'Intervalo marcado como nao usufruido - nada descontado'
+        : null;
   } else if (registro?.entrada && !registro?.saida) {
     statusLabel = 'Trabalhando';
     statusCor = 'bg-emerald-100 text-emerald-700';
@@ -82,6 +94,9 @@ export default async function MeuPontoPage() {
             <p className="text-xl font-bold text-amber-600">{extras}</p>
           </div>
         </div>
+        {intervaloTexto && (
+          <p className="text-xs text-gray-400 text-center mt-4">{intervaloTexto}</p>
+        )}
       </div>
     </div>
   );
