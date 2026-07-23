@@ -1,7 +1,7 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { getSessionUser } from '@/lib/auth/session';
 import { LogoutButton } from '@/components/ui/LogoutButton';
-import { LogoIcon } from '@/components/ui/Logo';
 
 const NAV_ITEMS = [
   { href: '/meu-ponto', label: 'Meu Ponto' },
@@ -18,11 +18,8 @@ export default async function ColaboradorLayout({ children }: { children: React.
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <LogoIcon size={36} />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">PontoPro</h1>
-                <p className="text-xs text-gray-500">{user?.email ?? 'Colaborador'}</p>
-              </div>
+              <Image src="/pontopro-logo-compacto.png" alt="PontoPro" width={110} height={58} priority />
+              <p className="text-xs text-gray-500 border-l border-gray-200 pl-3">{user?.email ?? 'Colaborador'}</p>
             </div>
             <LogoutButton />
           </div>
