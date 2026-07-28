@@ -3,6 +3,7 @@
 // src/components/colaboradores/ModalEditarColaborador.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/Toast';
 import type { Colaborador } from '@/types';
 
 const DIAS_SEMANA: { valor: number; label: string }[] = [
@@ -23,6 +24,7 @@ export function ModalEditarColaborador({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [nome, setNome] = useState(colaborador.nome);
   const [cargo, setCargo] = useState(colaborador.cargo);
   const [salarioBase, setSalarioBase] = useState(String(colaborador.salarioBase));
@@ -66,10 +68,13 @@ export function ModalEditarColaborador({
 
     if (!res.ok) {
       const data = await res.json();
-      setErro(data.error || 'Erro ao salvar alteracoes');
+      const mensagem = data.error || 'Erro ao salvar alteracoes';
+      setErro(mensagem);
+      showToast(mensagem, 'error');
       return;
     }
 
+    showToast('Colaborador atualizado com sucesso');
     router.refresh();
     onClose();
   }

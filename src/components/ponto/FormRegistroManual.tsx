@@ -3,9 +3,11 @@
 // src/components/ponto/FormRegistroManual.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/Toast';
 
 export function FormRegistroManual() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [aberto, setAberto] = useState(false);
   const [data, setData] = useState('');
   const [entrada, setEntrada] = useState('');
@@ -30,12 +32,15 @@ export function FormRegistroManual() {
 
     if (!res.ok) {
       const resData = await res.json();
-      setErro(resData.error || 'Erro ao salvar registro');
+      const mensagem = resData.error || 'Erro ao salvar registro';
+      setErro(mensagem);
+      showToast(mensagem, 'error');
       return;
     }
 
     setData(''); setEntrada(''); setSaida(''); setMotivo(''); setIntervaloNaoUsufruido(false);
     setAberto(false);
+    showToast('Registro adicionado com sucesso');
     router.refresh();
   }
 

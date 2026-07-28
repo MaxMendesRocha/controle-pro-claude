@@ -68,6 +68,8 @@ export function Icon({ name, className }: { name: IconName; className?: string }
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
+      aria-hidden="true"
+      focusable="false"
     >
       {PATHS[name]}
     </svg>
