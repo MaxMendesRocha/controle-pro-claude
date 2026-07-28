@@ -28,7 +28,7 @@ export default async function MeuPontoPage() {
   const registro = registroSnap.empty ? null : (registroSnap.docs[0].data() as RegistroPonto);
 
   let statusLabel = 'Fora de servico';
-  let statusCor = 'bg-gray-100 text-gray-600';
+  let statusCor = 'bg-surface-2 text-muted';
   let acao: React.ReactNode = <BaterPontoButton tipo="entrada" />;
   let total = '--:--';
   let extras = '--:--';
@@ -38,7 +38,7 @@ export default async function MeuPontoPage() {
 
   if (registro?.entrada && registro?.saida && colaborador) {
     statusLabel = 'Jornada finalizada';
-    statusCor = 'bg-gray-100 text-gray-600';
+    statusCor = 'bg-surface-2 text-muted';
     acao = null;
     const classificacao = classificarHorasRegistro(
       registro.data,
@@ -56,15 +56,15 @@ export default async function MeuPontoPage() {
         : null;
   } else if (registro?.entrada && !registro?.saida) {
     statusLabel = 'Trabalhando';
-    statusCor = 'bg-emerald-100 text-emerald-700';
+    statusCor = 'bg-positive-soft text-positive';
     acao = <BaterPontoButton tipo="saida" />;
   }
 
   return (
     <div>
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center mb-6">
+      <div className="bg-surface rounded-2xl shadow-lg border border-border p-8 text-center mb-6">
         {hojeEhDiaExtra && statusLabel !== 'Jornada finalizada' && (
-          <p className="text-sm text-amber-600 mb-3">
+          <p className="text-sm text-warning mb-3">
             Hoje esta fora da sua escala normal - horas trabalhadas contam com adicional maior
           </p>
         )}
@@ -74,28 +74,28 @@ export default async function MeuPontoPage() {
         <div>{acao}</div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Resumo de Hoje</h3>
+      <div className="bg-surface rounded-xl shadow-sm border border-border p-6">
+        <h3 className="text-lg font-bold text-foreground mb-4">Resumo de Hoje</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <p className="text-sm text-gray-500">Entrada</p>
-            <p className="text-xl font-bold text-gray-900">{registro?.entrada ?? '--:--'}</p>
+          <div className="p-4 bg-surface-2 rounded-lg text-center">
+            <p className="text-sm text-muted">Entrada</p>
+            <p className="text-xl font-bold text-foreground">{registro?.entrada ?? '--:--'}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <p className="text-sm text-gray-500">Saida</p>
-            <p className="text-xl font-bold text-gray-900">{registro?.saida ?? '--:--'}</p>
+          <div className="p-4 bg-surface-2 rounded-lg text-center">
+            <p className="text-sm text-muted">Saida</p>
+            <p className="text-xl font-bold text-foreground">{registro?.saida ?? '--:--'}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <p className="text-sm text-gray-500">Total Trabalhado</p>
-            <p className="text-xl font-bold text-emerald-600">{total}</p>
+          <div className="p-4 bg-surface-2 rounded-lg text-center">
+            <p className="text-sm text-muted">Total Trabalhado</p>
+            <p className="text-xl font-bold text-positive">{total}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <p className="text-sm text-gray-500">Horas Extras</p>
-            <p className="text-xl font-bold text-amber-600">{extras}</p>
+          <div className="p-4 bg-surface-2 rounded-lg text-center">
+            <p className="text-sm text-muted">Horas Extras</p>
+            <p className="text-xl font-bold text-warning">{extras}</p>
           </div>
         </div>
         {intervaloTexto && (
-          <p className="text-xs text-gray-400 text-center mt-4">{intervaloTexto}</p>
+          <p className="text-xs text-faint text-center mt-4">{intervaloTexto}</p>
         )}
       </div>
     </div>

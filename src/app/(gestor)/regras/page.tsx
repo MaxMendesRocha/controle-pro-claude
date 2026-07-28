@@ -31,7 +31,7 @@ export default async function RegrasPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Regras de Calculo</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-6">Regras de Calculo</h2>
       <RegrasForm regrasIniciais={regras} />
     </div>
   );

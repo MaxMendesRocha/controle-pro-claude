@@ -44,18 +44,18 @@ export function GerarHoleritesButton() {
       <button
         onClick={handleClick}
         disabled={gerando}
-        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+        className="bg-accent hover:bg-accent/90 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
       >
         {gerando ? 'Gerando...' : 'Gerar Todos'}
       </button>
 
-      {erro && <p className="text-sm text-red-600 mt-2">{erro}</p>}
+      {erro && <p className="text-sm text-critical mt-2">{erro}</p>}
 
       {avisos.length > 0 && (
-        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-          <p className="font-medium text-amber-800 mb-1">Avisos na geracao:</p>
+        <div className="mt-3 p-3 bg-warning-soft border border-warning/30 rounded-lg text-sm">
+          <p className="font-medium text-warning mb-1">Avisos na geracao:</p>
           {avisos.map((a) => (
-            <div key={a.nome} className="text-amber-700">
+            <div key={a.nome} className="text-warning">
               <span className="font-medium">{a.nome}:</span> {a.avisos.join('; ')}
             </div>
           ))}

@@ -23,25 +23,25 @@ export function TabelaRegistros({
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-surface-2">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Colaborador</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entrada</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Saida</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Extras</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acoes</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Data</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Colaborador</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Entrada</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Saida</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Total</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Extras</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Tipo</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Acoes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {registros.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-gray-400">Nenhum registro encontrado</td>
+                  <td colSpan={8} className="px-6 py-8 text-center text-faint">Nenhum registro encontrado</td>
                 </tr>
               )}
               {registros.map((r) => {
@@ -60,28 +60,28 @@ export function TabelaRegistros({
                 }
 
                 return (
-                  <tr key={r.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                  <tr key={r.id} className="hover:bg-surface-hover transition">
+                    <td className="px-6 py-4 text-sm text-foreground">
                       {formatDateBR(r.data)}
                       {ehDiaExtra && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-700">
+                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-special-soft text-special">
                           Extra
                         </span>
                       )}
                       {r.intervaloNaoUsufruido && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-100 text-orange-700">
+                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-warning-soft text-warning">
                           Sem intervalo
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{colaborador?.nome ?? 'N/A'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{r.entrada ?? '--:--'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{r.saida ?? '--:--'}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{total}</td>
-                    <td className="px-6 py-4 text-sm text-amber-600 font-medium">{extras}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-foreground">{colaborador?.nome ?? 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-muted">{r.entrada ?? '--:--'}</td>
+                    <td className="px-6 py-4 text-sm text-muted">{r.saida ?? '--:--'}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-foreground">{total}</td>
+                    <td className="px-6 py-4 text-sm text-warning font-medium">{extras}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        r.tipo === 'automatico' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'
+                        r.tipo === 'automatico' ? 'bg-accent-soft text-accent-ink' : 'bg-warning-soft text-warning'
                       }`}>
                         {r.tipo === 'automatico' ? 'Automatico' : 'Manual'}
                       </span>
@@ -89,7 +89,7 @@ export function TabelaRegistros({
                     <td className="px-6 py-4">
                       <button
                         onClick={() => setEditando(r)}
-                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-sm text-accent hover:text-accent-ink font-medium"
                       >
                         Editar
                       </button>

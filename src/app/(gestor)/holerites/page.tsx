@@ -52,7 +52,7 @@ export default async function HoleritesPage({
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Holerites</h2>
+        <h2 className="text-2xl font-bold text-foreground">Holerites</h2>
         <div className="flex flex-col items-end gap-2">
           <div className="flex gap-2">
             <FiltrosHolerites
@@ -67,7 +67,7 @@ export default async function HoleritesPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {holerites.length === 0 && (
-          <div className="col-span-2 text-center py-12 text-gray-400 bg-white rounded-xl border border-gray-100">
+          <div className="col-span-2 text-center py-12 text-faint bg-surface rounded-xl border border-border">
             Nenhum holerite gerado para este periodo
           </div>
         )}
@@ -78,21 +78,21 @@ export default async function HoleritesPage({
           const temSeparacao = h.valorHorasExtras50 !== undefined && h.valorHorasExtras100 !== undefined;
 
           return (
-            <div key={h.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+            <div key={h.id} className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden">
+              <div className="p-4 bg-surface-2 border-b border-border flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
+                  <div className="w-10 h-10 rounded-full bg-accent-soft flex items-center justify-center text-sm font-bold text-accent-ink">
                     {colaborador?.nome?.charAt(0) ?? '?'}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{colaborador?.nome ?? 'Colaborador removido'}</p>
-                    <p className="text-xs text-gray-500">{colaborador?.cargo ?? ''}</p>
+                    <p className="font-semibold text-foreground">{colaborador?.nome ?? 'Colaborador removido'}</p>
+                    <p className="text-xs text-faint">{colaborador?.cargo ?? ''}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-medium text-gray-500 block">{h.mes}</span>
+                  <span className="text-sm font-medium text-muted block">{h.mes}</span>
                   {h.periodoInicio && h.periodoFim && (
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-faint">
                       {formatDateBR(h.periodoInicio)} a {formatDateBR(h.periodoFim)}
                     </span>
                   )}
@@ -100,53 +100,53 @@ export default async function HoleritesPage({
               </div>
               <div className="p-4 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Salario Base</span>
-                  <span className="font-medium">{currency(h.salarioBase)}</span>
+                  <span className="text-muted">Salario Base</span>
+                  <span className="font-medium text-foreground">{currency(h.salarioBase)}</span>
                 </div>
 
                 {temSeparacao ? (
                   <>
                     {h.totalHorasExtras > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500">HE 50% ({horasParaTexto(h.totalHorasExtras)})</span>
-                        <span className="font-medium text-amber-600">+ {currency(h.valorHorasExtras50)}</span>
+                        <span className="text-muted">HE 50% ({horasParaTexto(h.totalHorasExtras)})</span>
+                        <span className="font-medium text-warning">+ {currency(h.valorHorasExtras50)}</span>
                       </div>
                     )}
                     {h.totalHorasExtrasDomingoFeriado > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500">HE 100% ({horasParaTexto(h.totalHorasExtrasDomingoFeriado)})</span>
-                        <span className="font-medium text-purple-600">+ {currency(h.valorHorasExtras100)}</span>
+                        <span className="text-muted">HE 100% ({horasParaTexto(h.totalHorasExtrasDomingoFeriado)})</span>
+                        <span className="font-medium text-special">+ {currency(h.valorHorasExtras100)}</span>
                       </div>
                     )}
                   </>
                 ) : (
                   h.valorHorasExtras > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">
+                      <span className="text-muted">
                         Horas Extras ({horasParaTexto(h.totalHorasExtras + h.totalHorasExtrasDomingoFeriado)})
                       </span>
-                      <span className="font-medium text-amber-600">+ {currency(h.valorHorasExtras)}</span>
+                      <span className="font-medium text-warning">+ {currency(h.valorHorasExtras)}</span>
                     </div>
                   )
                 )}
 
                 {h.descontoFaltas > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Desconto Faltas</span>
-                    <span className="font-medium text-red-600">- {currency(h.descontoFaltas)}</span>
+                    <span className="text-muted">Desconto Faltas</span>
+                    <span className="font-medium text-critical">- {currency(h.descontoFaltas)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-gray-500">INSS</span>
-                  <span className="font-medium text-red-600">- {currency(h.inss)}</span>
+                  <span className="text-muted">INSS</span>
+                  <span className="font-medium text-critical">- {currency(h.inss)}</span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-400">
+                <div className="flex justify-between text-xs text-faint">
                   <span>FGTS (informativo, pago pelo empregador)</span>
                   <span>{currency(h.fgts)}</span>
                 </div>
-                <div className="border-t border-gray-100 pt-2 flex justify-between">
-                  <span className="font-semibold text-gray-900">Total a Receber</span>
-                  <span className="font-bold text-emerald-600 text-lg">{currency(h.liquido)}</span>
+                <div className="border-t border-border pt-2 flex justify-between">
+                  <span className="font-semibold text-foreground">Total a Receber</span>
+                  <span className="font-bold text-positive text-lg">{currency(h.liquido)}</span>
                 </div>
                 <div className="pt-2">
                   <BaixarPdfButton docId={h.id} />

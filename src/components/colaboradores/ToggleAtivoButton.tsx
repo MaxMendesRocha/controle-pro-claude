@@ -22,7 +22,7 @@ export function ToggleAtivoButton({ uid, ativo }: { uid: string; ativo: boolean 
     <button
       onClick={handleClick}
       disabled={carregando}
-      className="text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+      className="text-sm text-accent hover:text-accent-ink font-medium disabled:opacity-50"
     >
       {ativo ? 'Desativar' : 'Ativar'}
     </button>

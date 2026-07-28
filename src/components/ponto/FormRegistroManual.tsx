@@ -43,7 +43,7 @@ export function FormRegistroManual() {
     return (
       <button
         onClick={() => setAberto(true)}
-        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+        className="bg-positive hover:bg-positive/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
       >
         + Registro Manual
       </button>
@@ -51,55 +51,55 @@ export function FormRegistroManual() {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="text-xl font-bold text-gray-900">Registro Manual</h3>
-          <button onClick={() => setAberto(false)} className="text-gray-400 hover:text-gray-600">Fechar</button>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="p-6 border-b border-border flex justify-between items-center">
+          <h3 className="text-xl font-bold text-foreground">Registro Manual</h3>
+          <button onClick={() => setAberto(false)} className="text-faint hover:text-muted">Fechar</button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
+            <label className="block text-sm font-medium text-muted mb-1">Data</label>
             <input required type="date" value={data} max={new Date().toISOString().slice(0, 10)}
               onChange={(e) => setData(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+              className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-positive" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Entrada</label>
+              <label className="block text-sm font-medium text-muted mb-1">Entrada</label>
               <input required type="time" value={entrada} onChange={(e) => setEntrada(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+                className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-positive" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Saida</label>
+              <label className="block text-sm font-medium text-muted mb-1">Saida</label>
               <input required type="time" value={saida} onChange={(e) => setSaida(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+                className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-positive" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
+            <label className="block text-sm font-medium text-muted mb-1">Motivo</label>
             <textarea required value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={2}
               placeholder="Ex: Esqueci de bater o ponto"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+              className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-positive" />
           </div>
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
             <input
               type="checkbox"
               checked={intervaloNaoUsufruido}
               onChange={(e) => setIntervaloNaoUsufruido(e.target.checked)}
-              className="rounded border-gray-300"
+              className="rounded border-border"
             />
             Intervalo nao foi usufruido neste dia
           </label>
 
-          {erro && <p className="text-sm text-red-600">{erro}</p>}
+          {erro && <p className="text-sm text-critical">{erro}</p>}
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={() => setAberto(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+            <button type="button" onClick={() => setAberto(false)} className="px-4 py-2 text-muted hover:bg-surface-hover rounded-lg transition">
               Cancelar
             </button>
-            <button type="submit" disabled={salvando} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg transition">
+            <button type="submit" disabled={salvando} className="px-4 py-2 bg-positive hover:bg-positive/90 disabled:opacity-50 text-white rounded-lg transition">
               {salvando ? 'Salvando...' : 'Registrar'}
             </button>
           </div>

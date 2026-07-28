@@ -36,12 +36,12 @@ export function BaterPontoButton({ tipo }: { tipo: 'entrada' | 'saida' }) {
   return (
     <div>
       {!isEntrada && (
-        <label className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-3 cursor-pointer">
+        <label className="flex items-center justify-center gap-2 text-sm text-muted mb-3 cursor-pointer">
           <input
             type="checkbox"
             checked={intervaloNaoUsufruido}
             onChange={(e) => setIntervaloNaoUsufruido(e.target.checked)}
-            className="rounded border-gray-300"
+            className="rounded border-border"
           />
           Nao fiz o intervalo hoje
         </label>
@@ -50,12 +50,12 @@ export function BaterPontoButton({ tipo }: { tipo: 'entrada' | 'saida' }) {
         onClick={handleClick}
         disabled={carregando}
         className={`px-8 py-3 rounded-xl font-semibold text-lg transition shadow-lg text-white disabled:opacity-50 ${
-          isEntrada ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'
+          isEntrada ? 'bg-positive hover:bg-positive/90' : 'bg-critical hover:bg-critical/90'
         }`}
       >
         {carregando ? 'Registrando...' : isEntrada ? 'Registrar Entrada' : 'Registrar Saida'}
       </button>
-      {erro && <p className="text-sm text-red-600 mt-2">{erro}</p>}
+      {erro && <p className="text-sm text-critical mt-2">{erro}</p>}
     </div>
   );
 }

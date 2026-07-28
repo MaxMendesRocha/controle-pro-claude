@@ -42,7 +42,7 @@ export default async function MeuHoleritePage({
   return (
     <div>
       <div className="flex justify-between items-center mb-6 no-print">
-        <h2 className="text-2xl font-bold text-gray-900">Meu Holerite</h2>
+        <h2 className="text-2xl font-bold text-foreground">Meu Holerite</h2>
         <div className="flex gap-2">
           <FiltroMes mesAtual={mesFiltro} />
           {holerite && <BaixarPdfButton docId={docId} />}
@@ -50,7 +50,7 @@ export default async function MeuHoleritePage({
       </div>
 
       {!holerite && (
-        <div className="text-center py-12 text-gray-400 bg-white rounded-xl border border-gray-100">
+        <div className="text-center py-12 text-faint bg-surface rounded-xl border border-border">
           Nenhum holerite disponivel para {mesFiltro} ainda. O holerite aparece aqui assim que o gestor gerar a folha do mes.
         </div>
       )}

@@ -75,55 +75,55 @@ export function ModalEditarColaborador({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="text-xl font-bold text-gray-900">Editar Colaborador</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">Fechar</button>
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-border flex justify-between items-center">
+          <h3 className="text-xl font-bold text-foreground">Editar Colaborador</h3>
+          <button onClick={onClose} className="text-faint hover:text-muted">Fechar</button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
-            <p><span className="font-medium text-gray-700">Email:</span> {colaborador.email}</p>
-            <p><span className="font-medium text-gray-700">CPF:</span> {colaborador.cpf}</p>
+          <div className="p-3 bg-surface-2 rounded-lg text-sm text-muted">
+            <p><span className="font-medium text-foreground">Email:</span> {colaborador.email}</p>
+            <p><span className="font-medium text-foreground">CPF:</span> {colaborador.cpf}</p>
             <p className="text-xs mt-1">Email e CPF nao podem ser alterados por aqui.</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo *</label>
+            <label className="block text-sm font-medium text-muted mb-1">Nome Completo *</label>
             <input required value={nome} onChange={(e) => setNome(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cargo *</label>
+            <label className="block text-sm font-medium text-muted mb-1">Cargo *</label>
             <input required value={cargo} onChange={(e) => setCargo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Salario Base (R$) *</label>
+              <label className="block text-sm font-medium text-muted mb-1">Salario Base (R$) *</label>
               <input required type="number" step="0.01" min="0.01" value={salarioBase}
                 onChange={(e) => setSalarioBase(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Carga Horaria Diaria (h) *</label>
+              <label className="block text-sm font-medium text-muted mb-1">Carga Horaria Diaria (h) *</label>
               <input required type="number" step="0.5" min="1" max="12" value={cargaHoraria}
                 onChange={(e) => setCargaHoraria(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Banco</label>
+            <label className="block text-sm font-medium text-muted mb-1">Banco</label>
             <input value={banco} onChange={(e) => setBanco(e.target.value)} placeholder="Banco / Ag / Conta"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" />
+              className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Dias de Trabalho *</label>
+            <label className="block text-sm font-medium text-muted mb-2">Dias de Trabalho *</label>
             <div className="flex flex-wrap gap-2">
               {DIAS_SEMANA.map((dia) => {
                 const selecionado = diasTrabalho.includes(dia.valor);
@@ -134,8 +134,8 @@ export function ModalEditarColaborador({
                     onClick={() => toggleDia(dia.valor)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition ${
                       selecionado
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+                        ? 'bg-accent text-white border-accent'
+                        : 'bg-surface-2 text-muted border-border hover:border-accent'
                     }`}
                   >
                     {dia.label}
@@ -145,13 +145,13 @@ export function ModalEditarColaborador({
             </div>
           </div>
 
-          {erro && <p className="text-sm text-red-600">{erro}</p>}
+          {erro && <p className="text-sm text-critical">{erro}</p>}
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-muted hover:bg-surface-hover rounded-lg transition">
               Cancelar
             </button>
-            <button type="submit" disabled={salvando} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition">
+            <button type="submit" disabled={salvando} className="px-4 py-2 bg-accent hover:bg-accent/90 disabled:opacity-50 text-white rounded-lg transition">
               {salvando ? 'Salvando...' : 'Salvar Alteracoes'}
             </button>
           </div>

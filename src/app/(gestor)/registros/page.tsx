@@ -46,7 +46,7 @@ export default async function RegistrosPage({
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Registros de Ponto</h2>
+        <h2 className="text-2xl font-bold text-foreground">Registros de Ponto</h2>
         <FiltroRegistros
           colaboradores={colaboradores}
           mesAtual={mesFiltro}
