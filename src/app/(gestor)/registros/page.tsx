@@ -3,19 +3,23 @@ import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
 import { FiltroRegistros } from '@/components/registros/FiltroRegistros';
 import { TabelaRegistros } from '@/components/registros/TabelaRegistros';
+import { Paginacao } from '@/components/registros/Paginacao';
 import type { Colaborador, RegistroPonto } from '@/types';
+
+const REGISTROS_POR_PAGINA = 12;
 
 export default async function RegistrosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string; colaboradorId?: string }>;
+  searchParams: Promise<{ mes?: string; colaboradorId?: string; pagina?: string }>;
 }) {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const { mes, colaboradorId } = await searchParams;
+  const { mes, colaboradorId, pagina } = await searchParams;
   const mesFiltro = mes || new Date().toISOString().slice(0, 7);
   const colaboradorIdFiltro = colaboradorId || '';
+  const paginaFiltro = Math.max(1, Number(pagina) || 1);
 
   const empresaRef = adminDb.collection('empresas').doc(user.empresaId);
 
@@ -43,6 +47,21 @@ export default async function RegistrosPage({
 
   registros.sort((a, b) => b.data.localeCompare(a.data));
 
+  const totalPaginas = Math.max(1, Math.ceil(registros.length / REGISTROS_POR_PAGINA));
+  const paginaAtual = Math.min(paginaFiltro, totalPaginas);
+  const registrosDaPagina = registros.slice(
+    (paginaAtual - 1) * REGISTROS_POR_PAGINA,
+    paginaAtual * REGISTROS_POR_PAGINA
+  );
+
+  function criarHref(pagina: number) {
+    const params = new URLSearchParams();
+    params.set('mes', mesFiltro);
+    if (colaboradorIdFiltro) params.set('colaboradorId', colaboradorIdFiltro);
+    if (pagina > 1) params.set('pagina', String(pagina));
+    return `/registros?${params.toString()}`;
+  }
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -54,7 +73,11 @@ export default async function RegistrosPage({
         />
       </div>
 
-      <TabelaRegistros registros={registros} colaboradoresPorId={colaboradoresPorId} />
+      <TabelaRegistros registros={registrosDaPagina} colaboradoresPorId={colaboradoresPorId} />
+
+      <div className="mt-4">
+        <Paginacao paginaAtual={paginaAtual} totalPaginas={totalPaginas} criarHref={criarHref} />
+      </div>
     </div>
   );
 }
