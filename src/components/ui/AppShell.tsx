@@ -1,6 +1,7 @@
 // src/components/ui/AppShell.tsx
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
@@ -41,9 +42,12 @@ export function AppShell({ items, userEmail, roleLabel, accent, children }: AppS
     <div className="flex min-h-dvh justify-center bg-surface-2 md:py-6">
       <div className="flex h-dvh w-full flex-col overflow-hidden bg-background md:h-[calc(100dvh-3rem)] md:max-w-sm md:rounded-[2.5rem] md:border md:border-border md:shadow-2xl">
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-5 py-4">
-          <div className="min-w-0">
-            <p className="truncate text-lg font-bold">{active?.label ?? roleLabel}</p>
-            <p className="text-xs text-faint">{roleLabel}</p>
+          <div className="flex min-w-0 items-center gap-3">
+            <Image src="/pontopro-logo-icone.png" alt="" width={28} height={28} className="shrink-0" priority />
+            <div className="min-w-0">
+              <p className="truncate text-lg font-bold">{active?.label ?? roleLabel}</p>
+              <p className="text-xs text-faint">{roleLabel}</p>
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <div className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold ${activePillClass}`}>
