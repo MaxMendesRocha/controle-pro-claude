@@ -1,12 +1,12 @@
 import { getSessionUser } from '@/lib/auth/session';
-import { Sidebar, type SidebarNavItem } from '@/components/ui/Sidebar';
+import { AppShell, type AppNavItem } from '@/components/ui/AppShell';
 
-const NAV_ITEMS: SidebarNavItem[] = [
+const NAV_ITEMS: AppNavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { href: '/colaboradores', label: 'Colaboradores', icon: 'colaboradores' },
-  { href: '/registros', label: 'Registros de Ponto', icon: 'registros' },
+  { href: '/colaboradores', label: 'Equipe', icon: 'colaboradores' },
+  { href: '/registros', label: 'Ponto', icon: 'registros' },
   { href: '/holerites', label: 'Holerites', icon: 'holerites' },
-  { href: '/regras', label: 'Regras de Calculo', icon: 'regras' },
+  { href: '/regras', label: 'Regras', icon: 'regras' },
 ];
 
 export default async function GestorLayout({ children }: { children: React.ReactNode }) {
@@ -14,11 +14,8 @@ export default async function GestorLayout({ children }: { children: React.React
   const user = await getSessionUser();
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar items={NAV_ITEMS} userEmail={user?.email ?? null} roleLabel="Gestor" accent="gestor" />
-      <main className="min-w-0 flex-1 px-6 py-8 lg:px-10">
-        <div className="mx-auto max-w-[1400px]">{children}</div>
-      </main>
-    </div>
+    <AppShell items={NAV_ITEMS} userEmail={user?.email ?? null} roleLabel="Gestor" accent="gestor">
+      {children}
+    </AppShell>
   );
 }
