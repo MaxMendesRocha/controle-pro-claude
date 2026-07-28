@@ -7,8 +7,8 @@ import { ProgressRing } from '@/components/ui/ProgressRing';
 import { Icon } from '@/components/ui/icons';
 import type { Colaborador, RegistroPonto } from '@/types';
 
-interface DiaExtra {
-  dia: number;
+interface ColabExtra {
+  nome: string;
   he50: number;
   he100: number;
 }
@@ -39,34 +39,36 @@ export default async function DashboardPage({
   const hoje = formatDateISO(new Date());
   const trabalhandoAgora = registros.filter((r) => r.data === hoje && r.entrada && !r.saida).length;
 
-  const [anoFiltro, mesNumFiltro] = mesFiltro.split('-').map(Number);
-  const diasNoMes = new Date(anoFiltro, mesNumFiltro, 0).getDate();
-  const diario: DiaExtra[] = Array.from({ length: diasNoMes }, (_, i) => ({ dia: i + 1, he50: 0, he100: 0 }));
-
   let totalHE50 = 0;
   let totalHE100 = 0;
   let totalFolha = 0;
+  const porColaborador: ColabExtra[] = [];
 
   colaboradores.forEach((c) => {
     totalFolha += c.salarioBase;
     const regsDoPeriodo = registros.filter(
       (r) => r.colaboradorId === c.uid && r.data.startsWith(mesFiltro) && r.entrada && r.saida
     );
+    let he50Colab = 0;
+    let he100Colab = 0;
     regsDoPeriodo.forEach((r) => {
       const classificacao = classificarHorasRegistro(r.data, r.entrada!, r.saida!, c, r.intervaloNaoUsufruido ?? false);
-      const diaIdx = Number(r.data.slice(8, 10)) - 1;
       if (classificacao.ehDiaExtra) {
-        totalHE100 += classificacao.horasExtras;
-        if (diario[diaIdx]) diario[diaIdx].he100 += classificacao.horasExtras;
+        he100Colab += classificacao.horasExtras;
       } else {
-        totalHE50 += classificacao.horasExtras;
-        if (diario[diaIdx]) diario[diaIdx].he50 += classificacao.horasExtras;
+        he50Colab += classificacao.horasExtras;
       }
     });
+    totalHE50 += he50Colab;
+    totalHE100 += he100Colab;
+    if (he50Colab + he100Colab > 0) {
+      porColaborador.push({ nome: c.nome, he50: he50Colab, he100: he100Colab });
+    }
   });
 
-  const maxDia = Math.max(1, ...diario.map((d) => d.he50 + d.he100));
-  const diaHojeNum = hoje.startsWith(mesFiltro) ? Number(hoje.slice(8, 10)) : null;
+  porColaborador.sort((a, b) => b.he50 + b.he100 - (a.he50 + a.he100));
+  const rankingExtras = porColaborador.slice(0, 6);
+  const maxColab = Math.max(1, ...rankingExtras.map((c) => c.he50 + c.he100));
 
   const proporcaoTrabalhando = totalAtivos > 0 ? trabalhandoAgora / totalAtivos : 0;
 
@@ -97,7 +99,7 @@ export default async function DashboardPage({
             <Icon name="colaboradores" className="h-4 w-4" />
           </div>
           <p className="text-xs text-muted">Colaboradores Ativos</p>
-          <p className="text-xl font-bold">{totalAtivos}</p>
+          <p className="text-xl font-bold text-accent-ink">{totalAtivos}</p>
         </div>
         <div className="rounded-2xl border border-border bg-surface p-4">
           <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-surface-2 text-muted">
@@ -115,41 +117,12 @@ export default async function DashboardPage({
 
       {/* Horas extras no periodo */}
       <div className="rounded-2xl border border-border bg-surface p-5">
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-1 flex items-center justify-between gap-3">
           <p className="text-xs font-medium uppercase tracking-wide text-faint">Horas extras no periodo</p>
           <FiltroMes mesAtual={mesFiltro} />
         </div>
 
-        <div className="flex h-40 items-end gap-[3px] border-b border-border/60">
-          {diario.map((d) => {
-            const total = d.he50 + d.he100;
-            const alturaTotal = (total / maxDia) * 100;
-            const alturaHE100 = total > 0 ? (d.he100 / total) * alturaTotal : 0;
-            const alturaHE50 = alturaTotal - alturaHE100;
-            const isHoje = d.dia === diaHojeNum;
-            return (
-              <div
-                key={d.dia}
-                className="group relative flex-1"
-                title={`Dia ${d.dia}: ${horasParaTexto(total)} extra`}
-              >
-                <div className="flex h-40 flex-col-reverse">
-                  <div
-                    className={`rounded-t-[2px] bg-warning transition-opacity ${total === 0 ? '' : 'group-hover:opacity-80'}`}
-                    style={{ height: `${alturaHE50}%` }}
-                  />
-                  <div
-                    className={`rounded-t-[2px] bg-special transition-opacity ${total === 0 ? '' : 'group-hover:opacity-80'}`}
-                    style={{ height: `${alturaHE100}%` }}
-                  />
-                </div>
-                {isHoje && <div className="absolute -bottom-[3px] left-0 right-0 h-[2px] rounded-full bg-accent" />}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-6">
+        <div className="mb-4 flex flex-wrap gap-6">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-warning" />
             <div>
@@ -165,6 +138,32 @@ export default async function DashboardPage({
             </div>
           </div>
         </div>
+
+        {rankingExtras.length === 0 ? (
+          <p className="py-4 text-center text-sm text-faint">Ninguem fez horas extras neste periodo.</p>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-faint">Quem mais fez hora extra</p>
+            {rankingExtras.map((c) => {
+              const total = c.he50 + c.he100;
+              const larguraTotal = (total / maxColab) * 100;
+              const larguraHE50 = total > 0 ? (c.he50 / total) * larguraTotal : 0;
+              const larguraHE100 = larguraTotal - larguraHE50;
+              return (
+                <div key={c.nome}>
+                  <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+                    <span className="truncate font-medium text-foreground">{c.nome}</span>
+                    <span className="shrink-0 text-faint">{horasParaTexto(total)}</span>
+                  </div>
+                  <div className="flex h-2.5 overflow-hidden rounded-full bg-surface-2">
+                    <div className="bg-warning transition-[width]" style={{ width: `${larguraHE50}%` }} />
+                    <div className="bg-special transition-[width]" style={{ width: `${larguraHE100}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <p className="text-xs text-faint">
