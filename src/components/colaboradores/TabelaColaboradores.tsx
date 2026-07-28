@@ -9,63 +9,61 @@ import type { Colaborador } from '@/types';
 export function TabelaColaboradores({ colaboradores }: { colaboradores: Colaborador[] }) {
   const [editando, setEditando] = useState<Colaborador | null>(null);
 
+  if (colaboradores.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-surface p-8 text-center text-faint">
+        Nenhum colaborador cadastrado
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface-2">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Nome</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Cargo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Salario Base</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Carga Horaria</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Acoes</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {colaboradores.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-faint">Nenhum colaborador cadastrado</td>
-                </tr>
-              )}
-              {colaboradores.map((c) => (
-                <tr key={c.uid} className="hover:bg-surface-hover transition">
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-foreground">{c.nome}</p>
-                    <p className="text-xs text-faint">{c.email}</p>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted">{c.cargo}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-foreground">
-                    {c.salarioBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted">{c.cargaHoraria}h/dia</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        c.ativo ? 'bg-positive-soft text-positive' : 'bg-critical-soft text-critical'
-                      }`}
-                    >
-                      {c.ativo ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => setEditando(c)}
-                        className="text-sm text-accent hover:text-accent-ink font-medium"
-                      >
-                        Editar
-                      </button>
-                      <ToggleAtivoButton uid={c.uid} ativo={c.ativo} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="space-y-3">
+        {colaboradores.map((c) => (
+          <div key={c.uid} className="rounded-2xl border border-border bg-surface p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-medium text-foreground">{c.nome}</p>
+                <p className="truncate text-xs text-faint">{c.email}</p>
+              </div>
+              <span
+                className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${
+                  c.ativo ? 'bg-positive-soft text-positive' : 'bg-critical-soft text-critical'
+                }`}
+              >
+                {c.ativo ? 'Ativo' : 'Inativo'}
+              </span>
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+              <div>
+                <p className="text-[11px] text-faint">Cargo</p>
+                <p className="truncate text-muted">{c.cargo}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-faint">Salario</p>
+                <p className="truncate font-medium text-foreground">
+                  {c.salarioBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-faint">Carga horaria</p>
+                <p className="truncate text-muted">{c.cargaHoraria}h/dia</p>
+              </div>
+            </div>
+
+            <div className="mt-3 flex gap-4 border-t border-border pt-3">
+              <button
+                onClick={() => setEditando(c)}
+                className="text-sm font-medium text-accent hover:text-accent-ink"
+              >
+                Editar
+              </button>
+              <ToggleAtivoButton uid={c.uid} ativo={c.ativo} />
+            </div>
+          </div>
+        ))}
       </div>
 
       {editando && (

@@ -51,46 +51,45 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-blue-600 to-indigo-800">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
-        <div className="flex justify-center mb-8">
-          <Image
-            src="/pontopro-logo-completo.png"
-            alt="PontoPro - Gerenciamento Inteligente"
-            width={260}
-            height={149}
-            priority
-          />
+    <div className="flex min-h-screen items-center justify-center bg-surface-2 p-4">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-2xl">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Image src="/pontopro-logo-icone.png" alt="" width={72} height={72} priority />
+          <p className="mt-4 text-2xl font-extrabold tracking-tight">
+            <span className="text-foreground">Ponto</span>
+            <span className="text-positive">Pro</span>
+          </p>
+          <p className="text-sm text-faint">Gerenciamento inteligente</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="mb-1 block text-sm font-medium text-muted">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full rounded-lg border border-border bg-surface-2 px-4 py-2 text-foreground outline-none transition focus:ring-2 focus:ring-accent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+            <label className="mb-1 block text-sm font-medium text-muted">Senha</label>
             <input
               type="password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full rounded-lg border border-border bg-surface-2 px-4 py-2 text-foreground outline-none transition focus:ring-2 focus:ring-accent"
             />
           </div>
 
-          {erro && <p className="text-sm text-red-600">{erro}</p>}
+          {erro && <p className="text-sm text-critical">{erro}</p>}
 
           <button
             type="submit"
             disabled={carregando}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition shadow-lg"
+            className="w-full rounded-lg bg-accent py-2.5 font-semibold text-white shadow-lg transition hover:bg-accent/90 disabled:opacity-50"
           >
             {carregando ? 'Entrando...' : 'Entrar'}
           </button>

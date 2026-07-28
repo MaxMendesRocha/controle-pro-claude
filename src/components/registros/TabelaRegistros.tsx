@@ -21,85 +21,90 @@ export function TabelaRegistros({
 }) {
   const [editando, setEditando] = useState<RegistroPonto | null>(null);
 
+  if (registros.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-surface p-8 text-center text-faint">
+        Nenhum registro encontrado
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface-2">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Data</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Colaborador</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Entrada</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Saida</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Total</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Extras</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Tipo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-faint uppercase">Acoes</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {registros.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-faint">Nenhum registro encontrado</td>
-                </tr>
-              )}
-              {registros.map((r) => {
-                const colaborador = colaboradoresPorId[r.colaboradorId];
-                let total = '--:--';
-                let extras = '--:--';
-                let ehDiaExtra = false;
+      <div className="space-y-3">
+        {registros.map((r) => {
+          const colaborador = colaboradoresPorId[r.colaboradorId];
+          let total = '--:--';
+          let extras = '--:--';
+          let ehDiaExtra = false;
 
-                if (r.entrada && r.saida && colaborador) {
-                  const classificacao = classificarHorasRegistro(
-                    r.data, r.entrada, r.saida, colaborador, r.intervaloNaoUsufruido ?? false
-                  );
-                  total = horasParaTexto(classificacao.totalHoras);
-                  extras = classificacao.horasExtras > 0 ? horasParaTexto(classificacao.horasExtras) : '--:--';
-                  ehDiaExtra = classificacao.ehDiaExtra;
-                }
+          if (r.entrada && r.saida && colaborador) {
+            const classificacao = classificarHorasRegistro(
+              r.data, r.entrada, r.saida, colaborador, r.intervaloNaoUsufruido ?? false
+            );
+            total = horasParaTexto(classificacao.totalHoras);
+            extras = classificacao.horasExtras > 0 ? horasParaTexto(classificacao.horasExtras) : '--:--';
+            ehDiaExtra = classificacao.ehDiaExtra;
+          }
 
-                return (
-                  <tr key={r.id} className="hover:bg-surface-hover transition">
-                    <td className="px-6 py-4 text-sm text-foreground">
-                      {formatDateBR(r.data)}
-                      {ehDiaExtra && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-special-soft text-special">
-                          Extra
-                        </span>
-                      )}
-                      {r.intervaloNaoUsufruido && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-warning-soft text-warning">
-                          Sem intervalo
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-foreground">{colaborador?.nome ?? 'N/A'}</td>
-                    <td className="px-6 py-4 text-sm text-muted">{r.entrada ?? '--:--'}</td>
-                    <td className="px-6 py-4 text-sm text-muted">{r.saida ?? '--:--'}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-foreground">{total}</td>
-                    <td className="px-6 py-4 text-sm text-warning font-medium">{extras}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        r.tipo === 'automatico' ? 'bg-accent-soft text-accent-ink' : 'bg-warning-soft text-warning'
-                      }`}>
-                        {r.tipo === 'automatico' ? 'Automatico' : 'Manual'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => setEditando(r)}
-                        className="text-sm text-accent hover:text-accent-ink font-medium"
-                      >
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+          return (
+            <div key={r.id} className="rounded-2xl border border-border bg-surface p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium text-foreground">{formatDateBR(r.data)}</p>
+                  <p className="truncate text-xs text-faint">{colaborador?.nome ?? 'N/A'}</p>
+                </div>
+                <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                  {ehDiaExtra && (
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-special-soft text-special">
+                      Extra
+                    </span>
+                  )}
+                  {r.intervaloNaoUsufruido && (
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-warning-soft text-warning">
+                      Sem intervalo
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                <div>
+                  <p className="text-[10px] text-faint">Entrada</p>
+                  <p className="text-sm text-muted">{r.entrada ?? '--:--'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-faint">Saida</p>
+                  <p className="text-sm text-muted">{r.saida ?? '--:--'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-faint">Total</p>
+                  <p className="text-sm font-medium text-foreground">{total}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-faint">Extras</p>
+                  <p className="text-sm font-medium text-warning">{extras}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+                <span
+                  className={`rounded-full px-2 py-1 text-xs font-medium ${
+                    r.tipo === 'automatico' ? 'bg-accent-soft text-accent-ink' : 'bg-warning-soft text-warning'
+                  }`}
+                >
+                  {r.tipo === 'automatico' ? 'Automatico' : 'Manual'}
+                </span>
+                <button
+                  onClick={() => setEditando(r)}
+                  className="text-sm font-medium text-accent hover:text-accent-ink"
+                >
+                  Editar
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {editando && (
