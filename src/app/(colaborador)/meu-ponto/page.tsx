@@ -78,7 +78,9 @@ export default async function MeuPontoPage() {
         )}
 
         <ProgressRing value={progresso} size={148} strokeWidth={12} progressClassName={ringCor}>
-          <span className="text-2xl font-bold">{total !== '--:--' ? total : horasParaTexto(horasTrabalhadas)}</span>
+          <span className={`text-2xl font-bold ${ringCor}`}>
+            {total !== '--:--' ? total : horasParaTexto(horasTrabalhadas)}
+          </span>
           <span className="text-[11px] text-faint">meta {horasParaTexto(metaDiaria)}</span>
         </ProgressRing>
 
