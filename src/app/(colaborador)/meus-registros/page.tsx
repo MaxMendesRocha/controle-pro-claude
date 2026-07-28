@@ -5,7 +5,10 @@ import { horasParaTexto } from '@/lib/calculos/horas';
 import { classificarHorasRegistro } from '@/lib/calculos/registro';
 import { FiltroMes } from '@/components/ponto/FiltroMes';
 import { FormRegistroManual } from '@/components/ponto/FormRegistroManual';
+import { Paginacao } from '@/components/registros/Paginacao';
 import type { RegistroPonto, Colaborador } from '@/types';
+
+const REGISTROS_POR_PAGINA = 12;
 
 function formatDateBR(dataISO: string) {
   const [ano, mes, dia] = dataISO.split('-');
@@ -15,13 +18,14 @@ function formatDateBR(dataISO: string) {
 export default async function MeusRegistrosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string }>;
+  searchParams: Promise<{ mes?: string; pagina?: string }>;
 }) {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const { mes } = await searchParams;
+  const { mes, pagina } = await searchParams;
   const mesFiltro = mes || new Date().toISOString().slice(0, 7);
+  const paginaFiltro = Math.max(1, Number(pagina) || 1);
 
   const empresaRef = adminDb.collection('empresas').doc(user.empresaId);
 
@@ -39,6 +43,20 @@ export default async function MeusRegistrosPage({
     .filter((r) => r.data.startsWith(mesFiltro))
     .sort((a, b) => b.data.localeCompare(a.data));
 
+  const totalPaginas = Math.max(1, Math.ceil(registros.length / REGISTROS_POR_PAGINA));
+  const paginaAtual = Math.min(paginaFiltro, totalPaginas);
+  const registrosDaPagina = registros.slice(
+    (paginaAtual - 1) * REGISTROS_POR_PAGINA,
+    paginaAtual * REGISTROS_POR_PAGINA
+  );
+
+  function criarHref(pagina: number) {
+    const params = new URLSearchParams();
+    params.set('mes', mesFiltro);
+    if (pagina > 1) params.set('pagina', String(pagina));
+    return `/meus-registros?${params.toString()}`;
+  }
+
   return (
     <div>
       <div className="flex flex-col items-start gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -55,7 +73,7 @@ export default async function MeusRegistrosPage({
         </div>
       ) : (
         <div className="space-y-3">
-          {registros.map((r, i) => {
+          {registrosDaPagina.map((r, i) => {
             let total = '--:--';
             let extras = '--:--';
             let status = { label: 'Incompleto', cor: 'bg-surface-2 text-muted' };
@@ -121,6 +139,10 @@ export default async function MeusRegistrosPage({
           })}
         </div>
       )}
+
+      <div className="mt-4">
+        <Paginacao paginaAtual={paginaAtual} totalPaginas={totalPaginas} criarHref={criarHref} />
+      </div>
     </div>
   );
 }
