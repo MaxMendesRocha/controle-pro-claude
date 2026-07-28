@@ -56,6 +56,7 @@ export function AppShell({ items, userEmail, roleLabel, accent, children }: AppS
             <button
               onClick={handleLogout}
               title="Sair"
+              aria-label="Sair"
               className="flex h-9 w-9 items-center justify-center rounded-full text-faint transition-colors hover:bg-critical-soft hover:text-critical"
             >
               <Icon name="logout" className="h-[18px] w-[18px]" />
@@ -72,6 +73,7 @@ export function AppShell({ items, userEmail, roleLabel, accent, children }: AppS
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium transition-colors ${
                   isActive ? activeTextClass : 'text-faint hover:text-muted'
                 }`}
