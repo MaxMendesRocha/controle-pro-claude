@@ -56,7 +56,7 @@ export default async function MeuHoleritePage({
       )}
 
       {holerite && colaborador && (
-        <div className="max-w-3xl mx-auto bg-white border-2 border-gray-800 rounded-xl p-8">
+        <div className="max-w-3xl mx-auto bg-white border-2 border-gray-800 rounded-xl p-8 text-gray-900">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">RECIBO DE PAGAMENTO</h2>
             <p className="text-sm text-gray-500">Referencia: {holerite.mes}</p>

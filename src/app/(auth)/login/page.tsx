@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 
@@ -74,7 +75,12 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-muted">Senha</label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="block text-sm font-medium text-muted">Senha</label>
+              <Link href="/esqueci-senha" className="text-xs font-medium text-accent hover:text-accent-ink">
+                Esqueci minha senha
+              </Link>
+            </div>
             <input
               type="password"
               value={senha}
