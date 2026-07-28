@@ -3,6 +3,7 @@
 // src/components/colaboradores/FormNovoColaborador.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/Toast';
 
 const DIAS_SEMANA: { valor: number; label: string }[] = [
   { valor: 1, label: 'Seg' },
@@ -21,6 +22,7 @@ const initialState = {
 
 export function FormNovoColaborador() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [aberto, setAberto] = useState(false);
   const [form, setForm] = useState(initialState);
   const [diasTrabalho, setDiasTrabalho] = useState<number[]>([1, 2, 3, 4, 5]);
@@ -63,13 +65,16 @@ export function FormNovoColaborador() {
 
     if (!res.ok) {
       const data = await res.json();
-      setErro(data.error || 'Erro ao salvar colaborador');
+      const mensagem = data.error || 'Erro ao salvar colaborador';
+      setErro(mensagem);
+      showToast(mensagem, 'error');
       return;
     }
 
     setForm(initialState);
     setDiasTrabalho([1, 2, 3, 4, 5]);
     setAberto(false);
+    showToast('Colaborador cadastrado com sucesso');
     router.refresh();
   }
 

@@ -3,12 +3,14 @@
 // src/components/regras/RegrasForm.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/Toast';
 import type { RegrasCalculo } from '@/types';
 
 type FormState = Omit<RegrasCalculo, 'empresaId'>;
 
 export function RegrasForm({ regrasIniciais }: { regrasIniciais: RegrasCalculo }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [form, setForm] = useState<FormState>({
     cargaDiaria: regrasIniciais.cargaDiaria,
     cargaSemanal: regrasIniciais.cargaSemanal,
@@ -44,11 +46,14 @@ export function RegrasForm({ regrasIniciais }: { regrasIniciais: RegrasCalculo }
 
     if (!res.ok) {
       const data = await res.json();
-      setErro(data.error || 'Erro ao salvar regras');
+      const mensagem = data.error || 'Erro ao salvar regras';
+      setErro(mensagem);
+      showToast(mensagem, 'error');
       return;
     }
 
     setSucesso(true);
+    showToast('Regras salvas com sucesso');
     router.refresh();
   }
 

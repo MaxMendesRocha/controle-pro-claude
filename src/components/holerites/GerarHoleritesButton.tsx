@@ -3,9 +3,11 @@
 // src/components/holerites/GerarHoleritesButton.tsx
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useToast } from '@/components/ui/Toast';
 
 export function GerarHoleritesButton() {
   const router = useRouter();
+  const { showToast } = useToast();
   const searchParams = useSearchParams();
   const mesAtual = searchParams.get('mes') || new Date().toISOString().slice(0, 7);
 
@@ -28,14 +30,16 @@ export function GerarHoleritesButton() {
     setGerando(false);
 
     if (!res.ok) {
-      setErro(data.error || 'Erro ao gerar holerites');
+      const mensagem = data.error || 'Erro ao gerar holerites';
+      setErro(mensagem);
+      showToast(mensagem, 'error');
       return;
     }
 
-    const comAvisos = (data.resultados as { nome: string; avisos: string[] }[]).filter(
-      (r) => r.avisos.length > 0
-    );
+    const resultados = data.resultados as { nome: string; avisos: string[] }[];
+    const comAvisos = resultados.filter((r) => r.avisos.length > 0);
     setAvisos(comAvisos);
+    showToast(`Holerites gerados: ${resultados.length}`);
     router.refresh();
   }
 

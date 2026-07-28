@@ -3,6 +3,7 @@
 // src/components/registros/ModalEditarRegistro.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/Toast';
 import type { RegistroPonto } from '@/types';
 
 export function ModalEditarRegistro({
@@ -15,6 +16,7 @@ export function ModalEditarRegistro({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [entrada, setEntrada] = useState(registro.entrada || '');
   const [saida, setSaida] = useState(registro.saida || '');
   const [motivo, setMotivo] = useState('');
@@ -38,10 +40,13 @@ export function ModalEditarRegistro({
 
     if (!res.ok) {
       const data = await res.json();
-      setErro(data.error || 'Erro ao salvar');
+      const mensagem = data.error || 'Erro ao salvar';
+      setErro(mensagem);
+      showToast(mensagem, 'error');
       return;
     }
 
+    showToast('Registro atualizado com sucesso');
     router.refresh();
     onClose();
   }
@@ -55,10 +60,13 @@ export function ModalEditarRegistro({
 
     if (!res.ok) {
       const data = await res.json();
-      setErro(data.error || 'Erro ao excluir');
+      const mensagem = data.error || 'Erro ao excluir';
+      setErro(mensagem);
+      showToast(mensagem, 'error');
       return;
     }
 
+    showToast('Registro excluido com sucesso');
     router.refresh();
     onClose();
   }

@@ -3,9 +3,11 @@
 // src/components/ponto/BaterPontoButton.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/ui/Toast';
 
 export function BaterPontoButton({ tipo }: { tipo: 'entrada' | 'saida' }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [intervaloNaoUsufruido, setIntervaloNaoUsufruido] = useState(false);
@@ -24,10 +26,13 @@ export function BaterPontoButton({ tipo }: { tipo: 'entrada' | 'saida' }) {
 
     if (!res.ok) {
       const data = await res.json();
-      setErro(data.error || 'Erro ao registrar ponto');
+      const mensagem = data.error || 'Erro ao registrar ponto';
+      setErro(mensagem);
+      showToast(mensagem, 'error');
       return;
     }
 
+    showToast(tipo === 'entrada' ? 'Entrada registrada' : 'Saida registrada');
     router.refresh();
   }
 
