@@ -38,8 +38,8 @@ export function AppShell({ items, userEmail, roleLabel, accent, children }: AppS
   const initials = (userEmail ?? roleLabel).slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex min-h-screen justify-center bg-surface-2 md:py-6">
-      <div className="flex h-screen w-full flex-col overflow-hidden bg-background md:h-[calc(100vh-3rem)] md:max-w-sm md:rounded-[2.5rem] md:border md:border-border md:shadow-2xl">
+    <div className="flex min-h-dvh justify-center bg-surface-2 md:py-6">
+      <div className="flex h-dvh w-full flex-col overflow-hidden bg-background md:h-[calc(100dvh-3rem)] md:max-w-sm md:rounded-[2.5rem] md:border md:border-border md:shadow-2xl">
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-5 py-4">
           <div className="min-w-0">
             <p className="truncate text-lg font-bold">{active?.label ?? roleLabel}</p>
