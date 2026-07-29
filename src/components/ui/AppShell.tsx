@@ -4,9 +4,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase/client';
+import { performLogout } from '@/lib/auth/logout';
 import { Icon, type IconName } from '@/components/ui/icons';
+import { IdleLogoutWatcher } from '@/components/ui/IdleLogoutWatcher';
 
 export interface AppNavItem {
   href: string;
@@ -27,8 +27,7 @@ export function AppShell({ items, userEmail, roleLabel, accent, children }: AppS
   const router = useRouter();
 
   async function handleLogout() {
-    await signOut(auth);
-    await fetch('/api/session', { method: 'DELETE' });
+    await performLogout();
     router.push('/login');
     router.refresh();
   }
@@ -91,6 +90,8 @@ export function AppShell({ items, userEmail, roleLabel, accent, children }: AppS
           })}
         </nav>
       </div>
+
+      <IdleLogoutWatcher />
     </div>
   );
 }
