@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth/session';
 
 const GESTOR_PREFIX = '/dashboard';
-const GESTOR_PATHS = ['/dashboard', '/colaboradores', '/registros', '/holerites', '/regras'];
-const COLABORADOR_PATHS = ['/meu-ponto', '/meus-registros', '/meu-holerite'];
+const GESTOR_PATHS = ['/dashboard', '/colaboradores', '/registros', '/holerites', '/regras', '/perfil'];
+const COLABORADOR_PATHS = ['/meu-ponto', '/meus-registros', '/meu-holerite', '/meu-perfil'];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -33,5 +33,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/colaboradores/:path*', '/registros/:path*', '/holerites/:path*', '/regras/:path*', '/meu-ponto/:path*', '/meus-registros/:path*', '/meu-holerite/:path*'],
+  matcher: ['/dashboard/:path*', '/colaboradores/:path*', '/registros/:path*', '/holerites/:path*', '/regras/:path*', '/perfil/:path*', '/meu-ponto/:path*', '/meus-registros/:path*', '/meu-holerite/:path*', '/meu-perfil/:path*'],
 };

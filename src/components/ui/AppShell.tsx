@@ -37,6 +37,8 @@ export function AppShell({ items, userEmail, roleLabel, accent, children }: AppS
   const activeTextClass = accent === 'gestor' ? 'text-accent-ink' : 'text-positive';
   const activePillClass = accent === 'gestor' ? 'bg-accent-soft text-accent-ink' : 'bg-positive-soft text-positive';
   const initials = (userEmail ?? roleLabel).slice(0, 2).toUpperCase();
+  const perfilHref = accent === 'gestor' ? '/perfil' : '/meu-perfil';
+  const isPerfil = pathname === perfilHref || pathname?.startsWith(`${perfilHref}/`);
 
   return (
     <div className="flex min-h-dvh justify-center bg-surface-2 md:py-6">
@@ -45,14 +47,18 @@ export function AppShell({ items, userEmail, roleLabel, accent, children }: AppS
           <div className="flex min-w-0 items-center gap-3">
             <Image src="/pontopro-logo-icone.png" alt="" width={28} height={28} className="shrink-0" priority />
             <div className="min-w-0">
-              <p className="truncate text-lg font-bold">{active?.label ?? roleLabel}</p>
+              <p className="truncate text-lg font-bold">{isPerfil ? 'Meu Perfil' : active?.label ?? roleLabel}</p>
               <p className="text-xs text-faint">{roleLabel}</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold ${activePillClass}`}>
+            <Link
+              href={perfilHref}
+              title="Meu perfil"
+              className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-opacity hover:opacity-80 ${activePillClass}`}
+            >
               {initials}
-            </div>
+            </Link>
             <button
               onClick={handleLogout}
               title="Sair"
