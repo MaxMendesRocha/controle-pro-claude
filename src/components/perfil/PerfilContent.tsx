@@ -7,7 +7,8 @@ import type { Colaborador } from '@/types';
 
 const DIAS_LABEL: Record<number, string> = { 0: 'Dom', 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sab' };
 
-function formatDateBR(dataISO: string) {
+function formatDateBR(dataISO: string | undefined) {
+  if (!dataISO) return 'Nao informado';
   const [ano, mes, dia] = dataISO.split('-');
   return `${dia}/${mes}/${ano}`;
 }
@@ -53,16 +54,20 @@ export async function PerfilContent() {
           <div>
             <p className="text-[11px] text-faint">Salario base</p>
             <p className="text-foreground">
-              {perfil.salarioBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              {(perfil.salarioBase ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </p>
           </div>
           <div>
             <p className="text-[11px] text-faint">Carga horaria</p>
-            <p className="text-foreground">{perfil.cargaHoraria}h/dia</p>
+            <p className="text-foreground">{perfil.cargaHoraria ? `${perfil.cargaHoraria}h/dia` : 'Nao informado'}</p>
           </div>
           <div>
             <p className="text-[11px] text-faint">Dias de trabalho</p>
-            <p className="text-foreground">{perfil.diasTrabalho.map((d) => DIAS_LABEL[d]).join(', ')}</p>
+            <p className="text-foreground">
+              {(perfil.diasTrabalho ?? []).length > 0
+                ? perfil.diasTrabalho.map((d) => DIAS_LABEL[d]).join(', ')
+                : 'Nao informado'}
+            </p>
           </div>
         </div>
         <p className="mt-4 text-xs text-faint">
