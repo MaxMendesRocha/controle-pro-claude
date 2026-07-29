@@ -12,8 +12,8 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#0a0e1b',
     icons: [
       {
-        src: '/pontopro-logo-icone.png',
-        sizes: '566x551',
+        src: '/icon',
+        sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
       },
