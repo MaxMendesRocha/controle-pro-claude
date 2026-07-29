@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
-import { FormEditarBanco } from './FormEditarBanco';
+import { FormEditarPerfil } from './FormEditarPerfil';
 import type { Colaborador } from '@/types';
 
 const DIAS_LABEL: Record<number, string> = { 0: 'Dom', 1: 'Seg', 2: 'Ter', 3: 'Qua', 4: 'Qui', 5: 'Sex', 6: 'Sab' };
@@ -33,12 +33,11 @@ export async function PerfilContent() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-border bg-surface p-5">
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-faint">Dados pessoais</p>
-        <p className="text-lg font-bold text-foreground">{perfil.nome}</p>
-        <p className="text-sm text-muted">{perfil.email}</p>
+      <FormEditarPerfil nomeInicial={perfil.nome} emailInicial={perfil.email} bancoInicial={perfil.banco ?? ''} />
 
-        <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+      <div className="rounded-2xl border border-border bg-surface p-5">
+        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-faint">Outras informacoes</p>
+        <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <p className="text-[11px] text-faint">Cargo</p>
             <p className="text-foreground">{perfil.cargo}</p>
@@ -66,13 +65,10 @@ export async function PerfilContent() {
             <p className="text-foreground">{perfil.diasTrabalho.map((d) => DIAS_LABEL[d]).join(', ')}</p>
           </div>
         </div>
-
         <p className="mt-4 text-xs text-faint">
-          Nome, cargo, salario e jornada sao definidos pelo gestor da empresa.
+          Cargo, salario e jornada sao gerenciados separadamente e nao podem ser editados por aqui.
         </p>
       </div>
-
-      <FormEditarBanco bancoInicial={perfil.banco ?? ''} />
 
       <div className="rounded-2xl border border-border bg-surface p-5">
         <p className="mb-1 text-sm font-medium text-foreground">Senha</p>
