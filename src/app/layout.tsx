@@ -15,6 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PontoPro",
   description: "Sistema de controle de ponto e folha de pagamento",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "PontoPro",
+  },
 };
 
 export const viewport: Viewport = {
