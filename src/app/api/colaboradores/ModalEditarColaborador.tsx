@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/Toast';
+import { calcularIntervaloMinutos } from '@/lib/calculos/intervalo';
 import type { Colaborador } from '@/types';
 
 const DIAS_SEMANA: { valor: number; label: string }[] = [
@@ -31,8 +32,12 @@ export function ModalEditarColaborador({
   const [cargaHoraria, setCargaHoraria] = useState(String(colaborador.cargaHoraria));
   const [banco, setBanco] = useState(colaborador.banco || '');
   const [diasTrabalho, setDiasTrabalho] = useState<number[]>(colaborador.diasTrabalho || [1, 2, 3, 4, 5]);
+  const [intervaloManual, setIntervaloManual] = useState(colaborador.intervaloManual ?? false);
+  const [duracaoIntervalo, setDuracaoIntervalo] = useState(String(colaborador.duracaoIntervaloMinutos ?? 60));
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+
+  const minimoLegalIntervalo = calcularIntervaloMinutos(parseFloat(cargaHoraria) || 0);
 
   function toggleDia(valor: number) {
     setDiasTrabalho((prev) =>
@@ -49,6 +54,11 @@ export function ModalEditarColaborador({
       return;
     }
 
+    if (intervaloManual && (parseInt(duracaoIntervalo, 10) || 0) < minimoLegalIntervalo) {
+      setErro(`Duracao do intervalo nao pode ser menor que o minimo legal (${minimoLegalIntervalo} min)`);
+      return;
+    }
+
     setSalvando(true);
 
     const res = await fetch(`/api/colaboradores/${colaborador.uid}`, {
@@ -61,6 +71,8 @@ export function ModalEditarColaborador({
         cargaHoraria: parseFloat(cargaHoraria),
         banco,
         diasTrabalho,
+        intervaloManual,
+        duracaoIntervaloMinutos: intervaloManual ? parseInt(duracaoIntervalo, 10) : undefined,
       }),
     });
 
@@ -148,6 +160,39 @@ export function ModalEditarColaborador({
                 );
               })}
             </div>
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-muted cursor-pointer">
+              <input
+                type="checkbox"
+                checked={intervaloManual}
+                onChange={(e) => setIntervaloManual(e.target.checked)}
+                className="rounded border-border"
+              />
+              Colaborador bate ponto do intervalo manualmente
+            </label>
+            <p className="text-xs text-faint mt-1">
+              Em vez do desconto automatico, o colaborador registra a saida e a volta do intervalo.
+            </p>
+
+            {intervaloManual && (
+              <div className="mt-2">
+                <label className="block text-sm font-medium text-muted mb-1">Duracao minima do intervalo (min) *</label>
+                <input
+                  required
+                  type="number"
+                  min={minimoLegalIntervalo}
+                  step="5"
+                  value={duracaoIntervalo}
+                  onChange={(e) => setDuracaoIntervalo(e.target.value)}
+                  className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent"
+                />
+                <p className="text-xs text-faint mt-1">
+                  Minimo legal para {cargaHoraria || '0'}h/dia: {minimoLegalIntervalo} min (Art. 71 CLT).
+                </p>
+              </div>
+            )}
           </div>
 
           {erro && <p className="text-sm text-critical">{erro}</p>}

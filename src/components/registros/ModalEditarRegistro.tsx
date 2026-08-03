@@ -9,16 +9,20 @@ import type { RegistroPonto } from '@/types';
 export function ModalEditarRegistro({
   registro,
   colaboradorNome,
+  intervaloManual = false,
   onClose,
 }: {
   registro: RegistroPonto;
   colaboradorNome: string;
+  intervaloManual?: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [entrada, setEntrada] = useState(registro.entrada || '');
   const [saida, setSaida] = useState(registro.saida || '');
+  const [saidaIntervalo, setSaidaIntervalo] = useState(registro.saidaIntervalo || '');
+  const [voltaIntervalo, setVoltaIntervalo] = useState(registro.voltaIntervalo || '');
   const [motivo, setMotivo] = useState('');
   const [intervaloNaoUsufruido, setIntervaloNaoUsufruido] = useState(Boolean(registro.intervaloNaoUsufruido));
   const [erro, setErro] = useState<string | null>(null);
@@ -33,7 +37,14 @@ export function ModalEditarRegistro({
     const res = await fetch(`/api/registros/${registro.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entrada, saida, motivo, intervaloNaoUsufruido }),
+      body: JSON.stringify({
+        entrada,
+        saida,
+        motivo,
+        intervaloNaoUsufruido,
+        saidaIntervalo: intervaloManual ? saidaIntervalo || undefined : undefined,
+        voltaIntervalo: intervaloManual ? voltaIntervalo || undefined : undefined,
+      }),
     });
 
     setSalvando(false);
@@ -100,6 +111,20 @@ export function ModalEditarRegistro({
                 className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent" />
             </div>
           </div>
+          {intervaloManual && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-muted mb-1">Saida Intervalo</label>
+                <input type="time" value={saidaIntervalo} onChange={(e) => setSaidaIntervalo(e.target.value)}
+                  className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-muted mb-1">Volta Intervalo</label>
+                <input type="time" value={voltaIntervalo} onChange={(e) => setVoltaIntervalo(e.target.value)}
+                  className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent" />
+              </div>
+            </div>
+          )}
           <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
             <input
               type="checkbox"

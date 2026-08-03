@@ -21,6 +21,10 @@ export interface Colaborador {
   ativo: boolean;
   role: Role;
   criadoEm: string; // ISO timestamp
+  /** true = colaborador bate saida/volta do intervalo manualmente; false/ausente = desconto automatico (padrao) */
+  intervaloManual?: boolean;
+  /** minutos minimos de intervalo exigidos, configurado pelo gestor - so relevante quando intervaloManual = true */
+  duracaoIntervaloMinutos?: number;
 }
 
 export interface RegistroPonto {
@@ -37,6 +41,9 @@ export interface RegistroPonto {
   criadoEm: string; // ISO timestamp - server timestamp
   /** true = o intervalo intrajornada nao foi de fato usufruido neste dia; nao descontar automaticamente */
   intervaloNaoUsufruido?: boolean;
+  /** batidas manuais do intervalo (HH:mm) - so usadas quando o colaborador tem intervaloManual = true */
+  saidaIntervalo?: string | null;
+  voltaIntervalo?: string | null;
 }
 
 export interface RegrasCalculo {
