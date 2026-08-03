@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { performLogout } from '@/lib/auth/logout';
 import { Icon, type IconName } from '@/components/ui/icons';
 import { IdleLogoutWatcher } from '@/components/ui/IdleLogoutWatcher';
+import { ViewportHeightFix } from '@/components/ui/ViewportHeightFix';
 
 export interface AppNavItem {
   href: string;
@@ -40,8 +41,9 @@ export function AppShell({ items, userEmail, roleLabel, accent, children }: AppS
   const isPerfil = pathname === perfilHref || pathname?.startsWith(`${perfilHref}/`);
 
   return (
-    <div className="flex min-h-dvh justify-center bg-surface-2 md:py-6">
-      <div className="flex h-dvh w-full flex-col overflow-hidden bg-background md:h-[calc(100dvh-3rem)] md:max-w-sm md:rounded-[2.5rem] md:border md:border-border md:shadow-2xl">
+    <div className="flex min-h-[var(--app-height,100dvh)] justify-center bg-surface-2 md:py-6">
+      <ViewportHeightFix />
+      <div className="flex h-[var(--app-height,100dvh)] w-full flex-col overflow-hidden bg-background md:h-[calc(var(--app-height,100dvh)-3rem)] md:max-w-sm md:rounded-[2.5rem] md:border md:border-border md:shadow-2xl">
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <Image src="/pontopro-logo-icone.png" alt="" width={28} height={28} className="shrink-0" priority />
