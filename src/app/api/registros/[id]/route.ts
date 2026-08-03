@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   const { id } = await params;
   const body = await request.json();
-  const { entrada, saida, motivo, intervaloNaoUsufruido } = body;
+  const { entrada, saida, motivo, intervaloNaoUsufruido, saidaIntervalo, voltaIntervalo } = body;
 
   if (!entrada || !saida || !motivo?.trim()) {
     return NextResponse.json({ error: 'Preencha entrada, saida e motivo' }, { status: 400 });
@@ -20,6 +20,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   if (parseTime(saida) <= parseTime(entrada)) {
     return NextResponse.json({ error: 'Horario de saida deve ser depois da entrada' }, { status: 400 });
+  }
+
+  if (saidaIntervalo && voltaIntervalo) {
+    if (
+      parseTime(saidaIntervalo) < parseTime(entrada) ||
+      parseTime(saidaIntervalo) >= parseTime(voltaIntervalo) ||
+      parseTime(voltaIntervalo) > parseTime(saida)
+    ) {
+      return NextResponse.json({ error: 'Horarios de intervalo invalidos' }, { status: 400 });
+    }
+  } else if (saidaIntervalo || voltaIntervalo) {
+    return NextResponse.json({ error: 'Preencha saida e volta do intervalo juntas, ou nenhuma das duas' }, { status: 400 });
   }
 
   const docRef = adminDb
@@ -39,6 +51,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     editadoPor: user.uid,
     editadoEm: new Date().toISOString(),
     intervaloNaoUsufruido: Boolean(intervaloNaoUsufruido),
+    saidaIntervalo: saidaIntervalo || null,
+    voltaIntervalo: voltaIntervalo || null,
   });
 
   return NextResponse.json({ ok: true });

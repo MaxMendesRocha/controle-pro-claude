@@ -52,7 +52,9 @@ export default async function DashboardPage({
     let he50Colab = 0;
     let he100Colab = 0;
     regsDoPeriodo.forEach((r) => {
-      const classificacao = classificarHorasRegistro(r.data, r.entrada!, r.saida!, c, r.intervaloNaoUsufruido ?? false);
+      const classificacao = classificarHorasRegistro(
+        r.data, r.entrada!, r.saida!, c, r.intervaloNaoUsufruido ?? false, r.saidaIntervalo, r.voltaIntervalo
+      );
       if (classificacao.ehDiaExtra) {
         he100Colab += classificacao.horasExtras;
       } else {

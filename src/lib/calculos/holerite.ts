@@ -106,7 +106,10 @@ export function calcularHolerite(
   let totalHorasExtrasDomingoFeriado = 0; // qualquer hora trabalhada fora da escala normal (100%)
 
   for (const registro of registrosCompletos) {
-    const classificacao = classificarHorasRegistro(registro.data, registro.entrada!, registro.saida!, colaborador, registro.intervaloNaoUsufruido ?? false);
+    const classificacao = classificarHorasRegistro(
+      registro.data, registro.entrada!, registro.saida!, colaborador,
+      registro.intervaloNaoUsufruido ?? false, registro.saidaIntervalo, registro.voltaIntervalo
+    );
 
     if (classificacao.totalHorasBruto <= 0) {
       avisos.push(`Registro de ${registro.data} tem duracao invalida (saida antes ou igual a entrada) - ignorado no calculo`);

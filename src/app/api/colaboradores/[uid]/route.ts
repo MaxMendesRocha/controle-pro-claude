@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
+import { calcularIntervaloMinutos } from '@/lib/calculos/intervalo';
 import type { DiaDaSemana } from '@/types';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ uid: string }> }) {
@@ -33,7 +34,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   const { uid } = await params;
   const body = await request.json();
-  const { nome, cargo, salarioBase, cargaHoraria, banco, diasTrabalho } = body;
+  const { nome, cargo, salarioBase, cargaHoraria, banco, diasTrabalho, intervaloManual, duracaoIntervaloMinutos } = body;
 
   if (!nome?.trim() || !cargo?.trim()) {
     return NextResponse.json({ error: 'Nome e cargo sao obrigatorios' }, { status: 400 });
@@ -52,6 +53,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: 'Dias de trabalho invalidos' }, { status: 400 });
   }
 
+  let duracaoIntervaloValidada: number | null = null;
+  if (intervaloManual) {
+    const minimoLegal = calcularIntervaloMinutos(cargaHoraria);
+    if (typeof duracaoIntervaloMinutos !== 'number' || duracaoIntervaloMinutos < minimoLegal) {
+      return NextResponse.json(
+        { error: `Duracao do intervalo nao pode ser menor que o minimo legal para essa jornada (${minimoLegal} min)` },
+        { status: 400 }
+      );
+    }
+    duracaoIntervaloValidada = duracaoIntervaloMinutos;
+  }
+
   const docRef = adminDb
     .collection('empresas').doc(user.empresaId)
     .collection('colaboradores').doc(uid);
@@ -68,6 +81,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     cargaHoraria,
     banco: banco || '',
     diasTrabalho: diasTrabalho as DiaDaSemana[],
+    intervaloManual: Boolean(intervaloManual),
+    duracaoIntervaloMinutos: duracaoIntervaloValidada,
   });
 
   return NextResponse.json({ ok: true });

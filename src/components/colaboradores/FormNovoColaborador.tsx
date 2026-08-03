@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/Toast';
+import { calcularIntervaloMinutos } from '@/lib/calculos/intervalo';
 
 const DIAS_SEMANA: { valor: number; label: string }[] = [
   { valor: 1, label: 'Seg' },
@@ -26,8 +27,12 @@ export function FormNovoColaborador() {
   const [aberto, setAberto] = useState(false);
   const [form, setForm] = useState(initialState);
   const [diasTrabalho, setDiasTrabalho] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [intervaloManual, setIntervaloManual] = useState(false);
+  const [duracaoIntervalo, setDuracaoIntervalo] = useState('60');
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+
+  const minimoLegalIntervalo = calcularIntervaloMinutos(parseFloat(form.cargaHoraria) || 0);
 
   function update(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -48,6 +53,11 @@ export function FormNovoColaborador() {
       return;
     }
 
+    if (intervaloManual && (parseInt(duracaoIntervalo, 10) || 0) < minimoLegalIntervalo) {
+      setErro(`Duracao do intervalo nao pode ser menor que o minimo legal (${minimoLegalIntervalo} min)`);
+      return;
+    }
+
     setSalvando(true);
 
     const res = await fetch('/api/colaboradores', {
@@ -58,6 +68,8 @@ export function FormNovoColaborador() {
         salarioBase: parseFloat(form.salarioBase),
         cargaHoraria: parseFloat(form.cargaHoraria),
         diasTrabalho,
+        intervaloManual,
+        duracaoIntervaloMinutos: intervaloManual ? parseInt(duracaoIntervalo, 10) : undefined,
       }),
     });
 
@@ -73,6 +85,8 @@ export function FormNovoColaborador() {
 
     setForm(initialState);
     setDiasTrabalho([1, 2, 3, 4, 5]);
+    setIntervaloManual(false);
+    setDuracaoIntervalo('60');
     setAberto(false);
     showToast('Colaborador cadastrado com sucesso');
     router.refresh();
@@ -175,6 +189,39 @@ export function FormNovoColaborador() {
             <p className="text-xs text-faint mt-1">
               Trabalho fora desses dias (ex: sabado se nao selecionado) e calculado como hora extra com adicional maior
             </p>
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-muted cursor-pointer">
+              <input
+                type="checkbox"
+                checked={intervaloManual}
+                onChange={(e) => setIntervaloManual(e.target.checked)}
+                className="rounded border-border"
+              />
+              Colaborador bate ponto do intervalo manualmente
+            </label>
+            <p className="text-xs text-faint mt-1">
+              Em vez do desconto automatico, o colaborador registra a saida e a volta do intervalo.
+            </p>
+
+            {intervaloManual && (
+              <div className="mt-2">
+                <label className="block text-sm font-medium text-muted mb-1">Duracao minima do intervalo (min) *</label>
+                <input
+                  required
+                  type="number"
+                  min={minimoLegalIntervalo}
+                  step="5"
+                  value={duracaoIntervalo}
+                  onChange={(e) => setDuracaoIntervalo(e.target.value)}
+                  className="w-full px-3 py-2 border border-border bg-surface-2 text-foreground rounded-lg outline-none focus:ring-2 focus:ring-accent"
+                />
+                <p className="text-xs text-faint mt-1">
+                  Minimo legal para {form.cargaHoraria || '0'}h/dia: {minimoLegalIntervalo} min (Art. 71 CLT).
+                </p>
+              </div>
+            )}
           </div>
 
           {erro && <p className="text-sm text-critical">{erro}</p>}

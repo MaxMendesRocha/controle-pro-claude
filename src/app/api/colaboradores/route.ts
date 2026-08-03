@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
+import { calcularIntervaloMinutos } from '@/lib/calculos/intervalo';
 import type { Colaborador, DiaDaSemana } from '@/types';
 
 export async function GET() {
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { nome, cpf, email, cargo, salarioBase, cargaHoraria, admissao, banco, diasTrabalho } = body;
+  const { nome, cpf, email, cargo, salarioBase, cargaHoraria, admissao, banco, diasTrabalho, intervaloManual, duracaoIntervaloMinutos } = body;
 
   if (!nome || !cpf || !email || !cargo || !salarioBase || !cargaHoraria || !admissao) {
     return NextResponse.json({ error: 'Campos obrigatorios ausentes' }, { status: 400 });
@@ -37,6 +38,18 @@ export async function POST(request: NextRequest) {
   }
   if (typeof cargaHoraria !== 'number' || cargaHoraria <= 0 || cargaHoraria > 12) {
     return NextResponse.json({ error: 'Carga horaria invalida' }, { status: 400 });
+  }
+
+  let duracaoIntervaloValidada: number | undefined;
+  if (intervaloManual) {
+    const minimoLegal = calcularIntervaloMinutos(cargaHoraria);
+    if (typeof duracaoIntervaloMinutos !== 'number' || duracaoIntervaloMinutos < minimoLegal) {
+      return NextResponse.json(
+        { error: `Duracao do intervalo nao pode ser menor que o minimo legal para essa jornada (${minimoLegal} min)` },
+        { status: 400 }
+      );
+    }
+    duracaoIntervaloValidada = duracaoIntervaloMinutos;
   }
 
   let diasTrabalhoValidado: DiaDaSemana[] = [1, 2, 3, 4, 5]; // default: seg a sex
@@ -89,6 +102,8 @@ export async function POST(request: NextRequest) {
     banco: banco || '',
     ativo: true,
     role: 'colaborador',
+    intervaloManual: Boolean(intervaloManual),
+    ...(duracaoIntervaloValidada !== undefined ? { duracaoIntervaloMinutos: duracaoIntervaloValidada } : {}),
     criadoEm: new Date().toISOString(),
   };
 
