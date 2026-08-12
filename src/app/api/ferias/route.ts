@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
 import { calcularPeriodosFeriasCompleto, calcularValorFerias } from '@/lib/calculos/ferias';
-import { DIAS_TRABALHO_PADRAO } from '@/lib/calculos/diasTrabalho';
-import type { Colaborador, GozoFerias, RegistroPonto } from '@/types';
+import type { Colaborador, GozoFerias } from '@/types';
 
 const DIAS_MINIMOS_POR_GOZO = 5; // CLT Art. 134 SS1 - nenhum periodo de fracionamento pode ser menor que isso
 
@@ -46,10 +45,9 @@ export async function POST(request: NextRequest) {
 
   const empresaRef = adminDb.collection('empresas').doc(user.empresaId);
 
-  const [colabDoc, gozosSnap, registrosSnap] = await Promise.all([
+  const [colabDoc, gozosSnap] = await Promise.all([
     empresaRef.collection('colaboradores').doc(colaboradorId).get(),
     empresaRef.collection('feriasGozos').where('colaboradorId', '==', colaboradorId).get(),
-    empresaRef.collection('registros').where('colaboradorId', '==', colaboradorId).get(),
   ]);
 
   if (!colabDoc.exists) {
@@ -57,7 +55,6 @@ export async function POST(request: NextRequest) {
   }
   const colaborador = colabDoc.data() as Colaborador;
   const gozosExistentes = gozosSnap.docs.map((d) => ({ ...d.data(), id: d.id }) as GozoFerias);
-  const registros = registrosSnap.docs.map((d) => d.data() as RegistroPonto);
 
   const sobreposto = gozosExistentes.some((g) => inicio <= g.fim && fim >= g.inicio);
   if (sobreposto) {
@@ -65,8 +62,7 @@ export async function POST(request: NextRequest) {
   }
 
   const hoje = new Date().toISOString().slice(0, 10);
-  const diasTrabalho = colaborador.diasTrabalho?.length ? colaborador.diasTrabalho : DIAS_TRABALHO_PADRAO;
-  const periodos = calcularPeriodosFeriasCompleto({ admissao: colaborador.admissao, diasTrabalho }, hoje, registros, gozosExistentes);
+  const periodos = calcularPeriodosFeriasCompleto(colaborador, hoje, gozosExistentes);
   const periodo = periodos.find((p) => p.indice === periodoIndice);
 
   if (!periodo) {

@@ -2,11 +2,10 @@
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
 import { calcularPeriodosFeriasCompleto } from '@/lib/calculos/ferias';
-import { DIAS_TRABALHO_PADRAO } from '@/lib/calculos/diasTrabalho';
 import { FiltroFerias } from '@/components/ferias/FiltroFerias';
 import { CardPeriodoFerias } from '@/components/ferias/CardPeriodoFerias';
 import { ListaGozosFerias } from '@/components/ferias/ListaGozosFerias';
-import type { Colaborador, GozoFerias, RegistroPonto } from '@/types';
+import type { Colaborador, GozoFerias } from '@/types';
 
 export default async function FeriasPage({
   searchParams,
@@ -32,18 +31,12 @@ export default async function FeriasPage({
   let periodos: ReturnType<typeof calcularPeriodosFeriasCompleto> = [];
 
   if (colaborador) {
-    const [gozosSnap, registrosSnap] = await Promise.all([
-      empresaRef.collection('feriasGozos').where('colaboradorId', '==', colaborador.uid).get(),
-      empresaRef.collection('registros').where('colaboradorId', '==', colaborador.uid).get(),
-    ]);
+    const gozosSnap = await empresaRef.collection('feriasGozos').where('colaboradorId', '==', colaborador.uid).get();
     gozos = gozosSnap.docs.map((d) => d.data() as GozoFerias);
     gozos.sort((a, b) => b.inicio.localeCompare(a.inicio));
 
-    const registros = registrosSnap.docs.map((d) => d.data() as RegistroPonto);
     const hoje = new Date().toISOString().slice(0, 10);
-    const diasTrabalho = colaborador.diasTrabalho?.length ? colaborador.diasTrabalho : DIAS_TRABALHO_PADRAO;
-
-    periodos = calcularPeriodosFeriasCompleto({ admissao: colaborador.admissao, diasTrabalho }, hoje, registros, gozos);
+    periodos = calcularPeriodosFeriasCompleto(colaborador, hoje, gozos);
   }
 
   return (
