@@ -13,11 +13,17 @@
 //   futura).
 // - Dias de direito: 30 dias corridos por periodo aquisitivo, reduzidos
 //   conforme o numero de faltas injustificadas nesse periodo (Art. 130).
-//   `calcularFaltasPorPeriodo` deriva essas faltas a partir dos registros de
-//   ponto e dos gozos de ferias ja registrados (ver faltas.ts).
+//   `calcularFaltasPorPeriodo` sabe derivar essas faltas a partir dos
+//   registros de ponto e dos gozos de ferias ja registrados (ver faltas.ts),
+//   mas NAO e usada por padrao em calcularPeriodosFeriasCompleto: nem todo
+//   colaborador bate ponto pelo app todo santo dia (ex: domesticas cujo
+//   controle e feito por fora), entao "sem registro" nao e um proxy
+//   confiavel de "faltou" - inferir isso automaticamente ja zerou o direito
+//   de uma colaboradora real que so nao usa o bater-ponto diariamente.
+//   O padrao seguro e assumir 0 faltas (30 dias) ate existir um jeito do
+//   gestor confirmar faltas de verdade.
 
-import { calcularFaltas, datasCobertasPorGozos } from './faltas';
-import { isDiaExtra } from './diasTrabalho';
+import { calcularFaltas } from './faltas';
 import type { DiaDaSemana } from '@/types';
 
 export type StatusPeriodoFerias = 'aquisitivo' | 'concessivo' | 'vencido';
@@ -150,15 +156,14 @@ export function calcularFaltasPorPeriodo(
 }
 
 /**
- * Combina calcularPeriodosFerias + calcularFaltasPorPeriodo num unico
- * calculo pronto pra uso, a partir dos registros de ponto e gozos de ferias
- * brutos do colaborador. Funcao pura - quem chama e responsavel por buscar
- * esses dados no banco.
+ * Calcula os periodos de ferias do colaborador a partir dos gozos ja
+ * registrados, assumindo 0 faltas injustificadas (30 dias de direito) por
+ * padrao - ver nota no topo do arquivo sobre por que as faltas nao sao
+ * inferidas automaticamente dos registros de ponto.
  */
 export function calcularPeriodosFeriasCompleto(
-  colaborador: { admissao: string; diasTrabalho: DiaDaSemana[] },
+  colaborador: { admissao: string },
   hoje: string,
-  registros: { data: string; entrada: string | null; saida: string | null }[],
   gozos: { periodoIndice: number; inicio: string; fim: string; dias: number }[]
 ): PeriodoFerias[] {
   const diasGozadosPorPeriodo: Record<number, number> = {};
@@ -166,17 +171,7 @@ export function calcularPeriodosFeriasCompleto(
     diasGozadosPorPeriodo[g.periodoIndice] = (diasGozadosPorPeriodo[g.periodoIndice] ?? 0) + g.dias;
   }
 
-  const periodosBase = calcularPeriodosFerias(colaborador.admissao, hoje, { diasGozadosPorPeriodo });
-
-  const datasTrabalhadas = new Set(
-    registros
-      .filter((r) => r.entrada && r.saida && !isDiaExtra(r.data, colaborador.diasTrabalho))
-      .map((r) => r.data)
-  );
-  const datasEmFerias = datasCobertasPorGozos(gozos);
-  const faltasPorPeriodo = calcularFaltasPorPeriodo(periodosBase, hoje, colaborador.diasTrabalho, datasTrabalhadas, datasEmFerias);
-
-  return calcularPeriodosFerias(colaborador.admissao, hoje, { diasGozadosPorPeriodo, faltasPorPeriodo });
+  return calcularPeriodosFerias(colaborador.admissao, hoje, { diasGozadosPorPeriodo });
 }
 
 export interface ValorFerias {
