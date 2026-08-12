@@ -1,10 +1,11 @@
 // src/app/(colaborador)/minhas-ferias/page.tsx
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
-import { calcularPeriodosFerias } from '@/lib/calculos/ferias';
+import { calcularPeriodosFeriasCompleto } from '@/lib/calculos/ferias';
+import { DIAS_TRABALHO_PADRAO } from '@/lib/calculos/diasTrabalho';
 import { CardPeriodoFerias } from '@/components/ferias/CardPeriodoFerias';
 import { ListaGozosFerias } from '@/components/ferias/ListaGozosFerias';
-import type { Colaborador, GozoFerias } from '@/types';
+import type { Colaborador, GozoFerias, RegistroPonto } from '@/types';
 
 export default async function MinhasFeriasPage() {
   const user = await getSessionUser();
@@ -12,9 +13,10 @@ export default async function MinhasFeriasPage() {
 
   const empresaRef = adminDb.collection('empresas').doc(user.empresaId);
 
-  const [colabDoc, gozosSnap] = await Promise.all([
+  const [colabDoc, gozosSnap, registrosSnap] = await Promise.all([
     empresaRef.collection('colaboradores').doc(user.uid).get(),
     empresaRef.collection('feriasGozos').where('colaboradorId', '==', user.uid).get(),
+    empresaRef.collection('registros').where('colaboradorId', '==', user.uid).get(),
   ]);
 
   const colaborador = colabDoc.data() as Colaborador | undefined;
@@ -24,12 +26,11 @@ export default async function MinhasFeriasPage() {
     return <p className="text-faint">Nao foi possivel carregar seus dados.</p>;
   }
 
-  const diasGozadosPorPeriodo: Record<number, number> = {};
-  for (const g of gozos) {
-    diasGozadosPorPeriodo[g.periodoIndice] = (diasGozadosPorPeriodo[g.periodoIndice] ?? 0) + g.dias;
-  }
+  const registros = registrosSnap.docs.map((d) => d.data() as RegistroPonto);
+  const hoje = new Date().toISOString().slice(0, 10);
+  const diasTrabalho = colaborador.diasTrabalho?.length ? colaborador.diasTrabalho : DIAS_TRABALHO_PADRAO;
 
-  const periodos = calcularPeriodosFerias(colaborador.admissao, undefined, { diasGozadosPorPeriodo });
+  const periodos = calcularPeriodosFeriasCompleto({ admissao: colaborador.admissao, diasTrabalho }, hoje, registros, gozos);
 
   return (
     <div className="space-y-6">

@@ -4,7 +4,7 @@ import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
 import { calcularHolerite } from '@/lib/calculos/holerite';
 import { calcularPeriodo } from '@/lib/calculos/periodo';
-import type { Colaborador, RegistroPonto, RegrasCalculo, Holerite } from '@/types';
+import type { Colaborador, RegistroPonto, RegrasCalculo, Holerite, GozoFerias } from '@/types';
 
 const DEFAULTS_REGRAS: Omit<RegrasCalculo, 'empresaId'> = {
   cargaDiaria: 8,
@@ -53,10 +53,11 @@ export async function POST(request: NextRequest) {
 
   const empresaRef = adminDb.collection('empresas').doc(user.empresaId);
 
-  const [colaboradoresSnap, regrasDoc, registrosSnap] = await Promise.all([
+  const [colaboradoresSnap, regrasDoc, registrosSnap, feriasGozosSnap] = await Promise.all([
     empresaRef.collection('colaboradores').get(),
     empresaRef.collection('regras').doc('config').get(),
     empresaRef.collection('registros').get(),
+    empresaRef.collection('feriasGozos').get(),
   ]);
 
   const colaboradores = colaboradoresSnap.docs
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
   const periodo = calcularPeriodo(mes, regras.diaFechamento);
 
   const todosRegistros = registrosSnap.docs.map((d) => d.data() as RegistroPonto);
+  const todosGozosFerias = feriasGozosSnap.docs.map((d) => d.data() as GozoFerias);
 
   if (colaboradores.length === 0) {
     return NextResponse.json({ error: 'Nenhum colaborador ativo encontrado' }, { status: 400 });
@@ -86,7 +88,14 @@ export async function POST(request: NextRequest) {
         r.data <= periodo.fim
     );
 
-    const { holerite, avisos } = calcularHolerite(colaborador, registrosDoPeriodo, regras, mes, periodo);
+    const gozosFeriasDoPeriodo = todosGozosFerias.filter(
+      (g) =>
+        g.colaboradorId === colaborador.uid &&
+        g.inicio <= periodo.fim &&
+        g.fim >= periodo.inicio
+    );
+
+    const { holerite, avisos } = calcularHolerite(colaborador, registrosDoPeriodo, regras, mes, periodo, new Date(), gozosFeriasDoPeriodo);
 
     const docId = `${mes}_${colaborador.uid}`;
     const docRef = empresaRef.collection('holerites').doc(docId);
