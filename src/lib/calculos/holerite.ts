@@ -156,10 +156,17 @@ export function calcularHolerite(
     registrosCompletos.filter((r) => !isDiaExtra(r.data, diasTrabalho)).map((r) => r.data)
   );
   const datasEmFerias = datasCobertasPorGozos(gozosFeriasDoPeriodo);
+
+  // faltas so fazem sentido ate hoje (nao da pra faltar num dia que ainda nao aconteceu)
   const diasUteisEsperados = listarDiasUteisEsperados(periodo.inicio, ateData, diasTrabalho);
   const datasFaltantes = diasUteisEsperados.filter((d) => !datasTrabalhadas.has(d) && !datasEmFerias.has(d));
   const faltas = datasFaltantes.length;
-  const diasEmFeriasNoPeriodo = diasUteisEsperados.filter((d) => datasEmFerias.has(d)).length;
+
+  // ferias agendadas sao um fato conhecido de antemao, independente de "hoje" -
+  // usa o periodo inteiro, nao limitado como diasUteisEsperados acima (senao um
+  // holerite gerado para um periodo ainda no futuro nunca veria a ferias)
+  const diasUteisEsperadosNoPeriodo = listarDiasUteisEsperados(periodo.inicio, periodo.fim, diasTrabalho);
+  const diasEmFeriasNoPeriodo = diasUteisEsperadosNoPeriodo.filter((d) => datasEmFerias.has(d)).length;
 
   const divisorMensal = (colaborador.cargaHoraria * diasTrabalho.length * 30) / 7;
   const valorHora = colaborador.salarioBase / divisorMensal;
@@ -174,7 +181,7 @@ export function calcularHolerite(
   let feriasValorBase = 0;
   let feriasTercoConstitucional = 0;
   for (const gozo of gozosFeriasDoPeriodo) {
-    const sobrepostos = diasSobrepostos(gozo.inicio, gozo.fim, periodo.inicio, ateData);
+    const sobrepostos = diasSobrepostos(gozo.inicio, gozo.fim, periodo.inicio, periodo.fim);
     if (sobrepostos <= 0) continue;
     const fracao = sobrepostos / gozo.dias;
     feriasDias += sobrepostos;
