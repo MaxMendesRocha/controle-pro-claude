@@ -142,6 +142,12 @@ export default async function HoleritesPage({
                     <span className="font-medium text-positive">+ {currency(h.feriasTercoConstitucional)}</span>
                   </div>
                 )}
+                {(h.compensacaoProvisaoInss ?? 0) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted">Compensacao de Provisao de INSS - Ferias</span>
+                    <span className="font-medium text-positive">+ {currency(h.compensacaoProvisaoInss)}</span>
+                  </div>
+                )}
 
                 {h.descontoFaltas > 0 && (
                   <div className="flex justify-between">

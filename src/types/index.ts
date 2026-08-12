@@ -80,7 +80,7 @@ export interface Holerite {
   /** soma de valorHorasExtras50 + valorHorasExtras100 - mantido para compatibilidade com holerites antigos */
   valorHorasExtras: number;
   descontoFaltas: number;
-  /** valor descontado do salario pelos dias da escala normal cobertos por ferias neste periodo (evita pagar esses dias 2x - ver ferias abaixo) */
+  /** valor descontado do salario pelos dias corridos de ferias no periodo (1/dias-do-periodo x dias, mesma base do adiantamento) - evita pagar esses dias 2x */
   descontoDiasFerias: number;
   /** dias corridos de gozo(s) de ferias que caem dentro deste periodo (pode ser so parte de um gozo, se ele atravessa 2 periodos) */
   feriasDias: number;
@@ -90,6 +90,8 @@ export interface Holerite {
   feriasTercoConstitucional: number;
   /** feriasValorBase + feriasTercoConstitucional - descontado do liquido pois ja foi pago via o(s) gozo(s) registrado(s) (Art. 145 CLT) */
   adiantamentoFerias: number;
+  /** devolve a provisao de INSS ja retida no recibo de ferias (ver dividirFeriasPorMesCalendario) - o INSS "de verdade" abaixo ja cobre essa parcela */
+  compensacaoProvisaoInss: number;
   inss: number;
   fgts: number;
   liquido: number;

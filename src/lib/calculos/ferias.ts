@@ -194,3 +194,81 @@ export function calcularValorFerias(salarioBase: number, dias: number, pagamento
   const tercoConstitucional = valorBase / 3;
   return { valorBase, tercoConstitucional, valorTotal: valorBase + tercoConstitucional };
 }
+
+/**
+ * Aliquota usada para estimar a provisao de INSS retida no momento do
+ * adiantamento de ferias (1a faixa da tabela progressiva) - uma estimativa
+ * simplificada, ja que nesse momento ainda nao se sabe a remuneracao total
+ * do mes (a apuracao real acontece na folha, que compensa essa provisao).
+ */
+export const ALIQUOTA_PROVISAO_INSS_FERIAS = 0.075;
+
+export interface ParcelaMensalFerias {
+  mes: string; // YYYY-MM
+  dias: number;
+  valorBase: number;
+  tercoConstitucional: number;
+  valorTotal: number;
+  provisaoInss: number;
+}
+
+function diasEntreDatas(inicio: string, fim: string): number {
+  const [anoI, mesI, diaI] = inicio.split('-').map(Number);
+  const [anoF, mesF, diaF] = fim.split('-').map(Number);
+  const inicioMs = new Date(anoI, mesI - 1, diaI).getTime();
+  const fimMs = new Date(anoF, mesF - 1, diaF).getTime();
+  return Math.round((fimMs - inicioMs) / 86_400_000) + 1;
+}
+
+/**
+ * Divide um gozo de ferias pelos meses calendario que ele atravessa (ex: um
+ * gozo de 26/08 a 04/09 vira uma parcela de 6 dias em agosto e uma de 4 dias
+ * em setembro), pra saber quanto de provisao de INSS reservar em cada
+ * competencia - usado no recibo de ferias, onde o mes calendario e o
+ * conceito relevante independente de como a folha da empresa fecha.
+ */
+export function dividirFeriasPorMesCalendario(
+  inicio: string,
+  fim: string,
+  dias: number,
+  valorBase: number,
+  tercoConstitucional: number
+): ParcelaMensalFerias[] {
+  const parcelas: ParcelaMensalFerias[] = [];
+  let [ano, mes] = inicio.split('-').map(Number);
+
+  while (`${ano}-${String(mes).padStart(2, '0')}` <= fim.slice(0, 7)) {
+    const mesStr = `${ano}-${String(mes).padStart(2, '0')}`;
+    const mesInicio = `${mesStr}-01`;
+    const ultimoDiaDoMes = new Date(ano, mes, 0).getDate();
+    const mesFim = `${mesStr}-${String(ultimoDiaDoMes).padStart(2, '0')}`;
+
+    const sobrepostoInicio = inicio > mesInicio ? inicio : mesInicio;
+    const sobrepostoFim = fim < mesFim ? fim : mesFim;
+
+    if (sobrepostoFim >= sobrepostoInicio) {
+      const diasNoMes = diasEntreDatas(sobrepostoInicio, sobrepostoFim);
+      const fracao = diasNoMes / dias;
+      const valorBaseMes = valorBase * fracao;
+      const tercoMes = tercoConstitucional * fracao;
+      const valorTotalMes = valorBaseMes + tercoMes;
+
+      parcelas.push({
+        mes: mesStr,
+        dias: diasNoMes,
+        valorBase: valorBaseMes,
+        tercoConstitucional: tercoMes,
+        valorTotal: valorTotalMes,
+        provisaoInss: valorTotalMes * ALIQUOTA_PROVISAO_INSS_FERIAS,
+      });
+    }
+
+    mes++;
+    if (mes > 12) {
+      mes = 1;
+      ano++;
+    }
+  }
+
+  return parcelas;
+}

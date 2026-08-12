@@ -4,8 +4,18 @@ import { renderToBuffer } from '@react-pdf/renderer';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
-import { calcularPeriodosFerias } from '@/lib/calculos/ferias';
+import { calcularPeriodosFerias, dividirFeriasPorMesCalendario } from '@/lib/calculos/ferias';
 import type { Colaborador, GozoFerias } from '@/types';
+
+const MESES_PT = [
+  'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
+function formatarMesAno(mes: string) {
+  const [ano, mesNum] = mes.split('-').map(Number);
+  return `${MESES_PT[mesNum - 1]}/${ano}`;
+}
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica' },
@@ -51,6 +61,10 @@ function ReciboFeriasPDF({
   aquisitivoInicio: string;
   aquisitivoFim: string;
 }) {
+  const parcelas = dividirFeriasPorMesCalendario(gozo.inicio, gozo.fim, gozo.dias, gozo.valorBase, gozo.tercoConstitucional);
+  const totalProvisaoInss = parcelas.reduce((soma, p) => soma + p.provisaoInss, 0);
+  const liquido = gozo.valorTotal - totalProvisaoInss;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -129,17 +143,29 @@ function ReciboFeriasPDF({
           </View>
         </View>
 
-        <Text style={styles.aviso}>
-          O INSS incidente sobre este valor e apurado e descontado na folha de pagamento do(s) mes(es) a que a ferias se refere, nao havendo retencao no momento deste adiantamento.
-        </Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>DESCONTOS</Text>
+          {parcelas.map((p) => (
+            <View key={p.mes} style={styles.linhaRow}>
+              <Text style={styles.linhaLabel}>
+                Provisao de INSS - Ferias (reserva para desconto na folha - {formatarMesAno(p.mes)})
+              </Text>
+              <Text style={styles.linhaValor}>{currency(p.provisaoInss)}</Text>
+            </View>
+          ))}
+          <View style={[styles.linhaRow, { borderBottomWidth: 0, marginTop: 4 }]}>
+            <Text style={[styles.linhaLabel, { fontWeight: 700 }]}>Total de Descontos</Text>
+            <Text style={styles.linhaValor}>{currency(totalProvisaoInss)}</Text>
+          </View>
+        </View>
 
         <View style={styles.liquidoBox}>
           <Text style={styles.liquidoLabel}>Liquido a Receber</Text>
-          <Text style={styles.liquidoValue}>{currency(gozo.valorTotal)}</Text>
+          <Text style={styles.liquidoValue}>{currency(liquido)}</Text>
         </View>
 
         <Text style={{ marginTop: 16 }}>
-          Recebi do empregador acima identificado a quantia liquida de {currency(gozo.valorTotal)} por motivo de minhas ferias
+          Recebi do empregador acima identificado a quantia liquida de {currency(liquido)} por motivo de minhas ferias
           regulamentares, ora concedidas e que vou gozar de acordo com a descricao acima.
         </Text>
 
