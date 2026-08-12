@@ -103,6 +103,8 @@ export interface GozoFerias {
   valorTotal: number;
   /** true se o periodo aquisitivo ja estava vencido (concessivo expirado) no momento do registro - da direito a pagamento em dobro (CLT Art. 137, Sumula 81 TST) */
   pagamentoEmDobro: boolean;
+  /** true se concedida antes da conclusao dos 12 meses do periodo aquisitivo (adiantamento por decisao do gestor) */
+  antecipada: boolean;
   observacao?: string;
   registradoPor: string; // uid do gestor que registrou
   registradoEm: string; // ISO timestamp

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { colaboradorId, periodoIndice, inicio, fim, observacao } = body;
+  const { colaboradorId, periodoIndice, inicio, fim, observacao, permitirAntecipacao } = body;
 
   if (!colaboradorId || typeof colaboradorId !== 'string') {
     return NextResponse.json({ error: 'Colaborador invalido' }, { status: 400 });
@@ -72,9 +72,13 @@ export async function POST(request: NextRequest) {
   if (!periodo) {
     return NextResponse.json({ error: 'Periodo invalido para este colaborador' }, { status: 400 });
   }
-  if (periodo.status === 'aquisitivo') {
+  const antecipada = periodo.status === 'aquisitivo';
+  if (antecipada && !permitirAntecipacao) {
     return NextResponse.json(
-      { error: 'Este periodo aquisitivo ainda nao foi concluido - o direito as ferias ainda nao foi adquirido' },
+      {
+        error: 'Este periodo aquisitivo ainda nao foi concluido - o direito as ferias ainda nao foi adquirido',
+        podeAntecipar: true,
+      },
       { status: 400 }
     );
   }
@@ -105,6 +109,7 @@ export async function POST(request: NextRequest) {
     tercoConstitucional,
     valorTotal,
     pagamentoEmDobro,
+    antecipada,
     ...(observacao?.trim() ? { observacao: observacao.trim() } : {}),
     registradoPor: user.uid,
     registradoEm: new Date().toISOString(),
