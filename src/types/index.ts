@@ -86,6 +86,20 @@ export interface Holerite {
   geradoEm: string; // ISO timestamp
 }
 
+export interface GozoFerias {
+  id: string;
+  empresaId: string;
+  colaboradorId: string;
+  /** indice do periodo aquisitivo a que este gozo se refere - ver calcularPeriodosFerias() */
+  periodoIndice: number;
+  inicio: string; // YYYY-MM-DD
+  fim: string; // YYYY-MM-DD (inclusive)
+  dias: number;
+  observacao?: string;
+  registradoPor: string; // uid do gestor que registrou
+  registradoEm: string; // ISO timestamp
+}
+
 export interface Empresa {
   id: string;
   razaoSocial: string;

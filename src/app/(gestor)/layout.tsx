@@ -6,6 +6,7 @@ const NAV_ITEMS: AppNavItem[] = [
   { href: '/colaboradores', label: 'Equipe', icon: 'colaboradores' },
   { href: '/registros', label: 'Ponto', icon: 'registros' },
   { href: '/holerites', label: 'Holerites', icon: 'holerites' },
+  { href: '/ferias', label: 'Ferias', icon: 'ferias' },
   { href: '/regras', label: 'Regras', icon: 'regras' },
 ];
 
