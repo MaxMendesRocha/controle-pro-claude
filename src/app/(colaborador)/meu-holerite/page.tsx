@@ -41,7 +41,10 @@ export default async function MeuHoleritePage({
   const feriasTerco = holerite?.feriasTercoConstitucional ?? 0;
   const descontoDiasFerias = holerite?.descontoDiasFerias ?? 0;
   const adiantamentoFerias = holerite?.adiantamentoFerias ?? 0;
-  const totalVencimentos = holerite ? holerite.salarioBase + holerite.valorHorasExtras + feriasValorBase + feriasTerco : 0;
+  const compensacaoProvisaoInss = holerite?.compensacaoProvisaoInss ?? 0;
+  const totalVencimentos = holerite
+    ? holerite.salarioBase + holerite.valorHorasExtras + feriasValorBase + feriasTerco + compensacaoProvisaoInss
+    : 0;
   const totalDescontos = holerite ? holerite.inss + holerite.descontoFaltas + descontoDiasFerias + adiantamentoFerias : 0;
 
   return (
@@ -147,6 +150,14 @@ export default async function MeuHoleritePage({
                   <td className="py-2">Ferias - Adicional 1/3</td>
                   <td className="text-right">-</td>
                   <td className="text-right">{currency(feriasTerco)}</td>
+                  <td className="text-right">-</td>
+                </tr>
+              )}
+              {compensacaoProvisaoInss > 0 && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2">Compensacao de Provisao de INSS - Ferias</td>
+                  <td className="text-right">-</td>
+                  <td className="text-right">{currency(compensacaoProvisaoInss)}</td>
                   <td className="text-right">-</td>
                 </tr>
               )}

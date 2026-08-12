@@ -48,7 +48,8 @@ function HoleritePDF({ holerite, colaborador }: { holerite: Holerite; colaborado
   const feriasTerco = holerite.feriasTercoConstitucional ?? 0;
   const descontoDiasFerias = holerite.descontoDiasFerias ?? 0;
   const adiantamentoFerias = holerite.adiantamentoFerias ?? 0;
-  const totalVencimentos = holerite.salarioBase + holerite.valorHorasExtras + feriasValorBase + feriasTerco;
+  const compensacaoProvisaoInss = holerite.compensacaoProvisaoInss ?? 0;
+  const totalVencimentos = holerite.salarioBase + holerite.valorHorasExtras + feriasValorBase + feriasTerco + compensacaoProvisaoInss;
   const totalDescontos = holerite.inss + holerite.descontoFaltas + descontoDiasFerias + adiantamentoFerias;
   const temSeparacao = holerite.valorHorasExtras50 !== undefined && holerite.valorHorasExtras100 !== undefined;
 
@@ -134,6 +135,14 @@ function HoleritePDF({ holerite, colaborador }: { holerite: Holerite; colaborado
               <Text style={styles.colDescricao}>Ferias - Adicional 1/3</Text>
               <Text style={styles.colReferencia}>-</Text>
               <Text style={styles.colVencimento}>{currency(feriasTerco)}</Text>
+              <Text style={styles.colDesconto}>-</Text>
+            </View>
+          )}
+          {compensacaoProvisaoInss > 0 && (
+            <View style={styles.tableRow}>
+              <Text style={styles.colDescricao}>Compensacao de Provisao de INSS - Ferias</Text>
+              <Text style={styles.colReferencia}>-</Text>
+              <Text style={styles.colVencimento}>{currency(compensacaoProvisaoInss)}</Text>
               <Text style={styles.colDesconto}>-</Text>
             </View>
           )}

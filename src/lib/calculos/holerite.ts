@@ -47,6 +47,7 @@
 import { classificarHorasRegistro } from './registro';
 import { isDiaExtra, DIAS_TRABALHO_PADRAO } from './diasTrabalho';
 import { datasCobertasPorGozos, listarDiasUteisEsperados } from './faltas';
+import { ALIQUOTA_PROVISAO_INSS_FERIAS } from './ferias';
 import type { PeriodoFolha } from './periodo';
 import type { Colaborador, RegistroPonto, RegrasCalculo, Holerite, DiaDaSemana, GozoFerias } from '@/types';
 
@@ -162,12 +163,6 @@ export function calcularHolerite(
   const datasFaltantes = diasUteisEsperados.filter((d) => !datasTrabalhadas.has(d) && !datasEmFerias.has(d));
   const faltas = datasFaltantes.length;
 
-  // ferias agendadas sao um fato conhecido de antemao, independente de "hoje" -
-  // usa o periodo inteiro, nao limitado como diasUteisEsperados acima (senao um
-  // holerite gerado para um periodo ainda no futuro nunca veria a ferias)
-  const diasUteisEsperadosNoPeriodo = listarDiasUteisEsperados(periodo.inicio, periodo.fim, diasTrabalho);
-  const diasEmFeriasNoPeriodo = diasUteisEsperadosNoPeriodo.filter((d) => datasEmFerias.has(d)).length;
-
   const divisorMensal = (colaborador.cargaHoraria * diasTrabalho.length * 30) / 7;
   const valorHora = colaborador.salarioBase / divisorMensal;
 
@@ -175,7 +170,6 @@ export function calcularHolerite(
   const valorHorasExtras100 = totalHorasExtrasDomingoFeriado * valorHora * (1 + regras.heDomingoFeriadoPercent / 100);
 
   const descontoFaltas = faltas * colaborador.cargaHoraria * valorHora * (regras.descontoFaltaPercent / 100);
-  const descontoDiasFerias = diasEmFeriasNoPeriodo * colaborador.cargaHoraria * valorHora;
 
   let feriasDias = 0;
   let feriasValorBase = 0;
@@ -190,6 +184,20 @@ export function calcularHolerite(
   }
   const adiantamentoFerias = feriasValorBase + feriasTercoConstitucional;
 
+  // desconto do salario pelos dias corridos de ferias no periodo, na mesma
+  // base de 1/dias-do-periodo usada pelo app de referencia (nao pela taxa
+  // horaria usada em falta/hora extra) - assim o Salario Base bate com o
+  // que o restante do mercado costuma mostrar num holerite com ferias
+  const diasNoPeriodo = diasSobrepostos(periodo.inicio, periodo.fim, periodo.inicio, periodo.fim);
+  const descontoDiasFerias = diasNoPeriodo > 0 ? (colaborador.salarioBase / diasNoPeriodo) * feriasDias : 0;
+
+  // provisao estimada de INSS sobre a parcela de ferias deste periodo (mesma
+  // aliquota retida no recibo de ferias - ver dividirFeriasPorMesCalendario em
+  // ferias.ts) - some de volta como vencimento pra nao descontar 2x, ja que o
+  // INSS "de verdade" (calculado abaixo, sobre a remuneracao total) ja cobre
+  // essa parcela
+  const compensacaoProvisaoInss = (feriasValorBase + feriasTercoConstitucional) * ALIQUOTA_PROVISAO_INSS_FERIAS;
+
   const remuneracaoBruta =
     colaborador.salarioBase - descontoDiasFerias + valorHorasExtras50 + valorHorasExtras100 -
     descontoFaltas + feriasValorBase + feriasTercoConstitucional;
@@ -197,7 +205,7 @@ export function calcularHolerite(
   const inss = calcularINSS(remuneracaoBruta);
   const fgts = remuneracaoBruta * 0.08; // informativo - pago pelo empregador, nao deduzido do liquido
 
-  const liquido = remuneracaoBruta - inss - adiantamentoFerias;
+  const liquido = remuneracaoBruta + compensacaoProvisaoInss - inss - adiantamentoFerias;
 
   if (faltas > 0) {
     const datasFormatadas = datasFaltantes.map(formatarDataBR);
@@ -210,7 +218,7 @@ export function calcularHolerite(
 
   if (feriasDias > 0) {
     avisos.push(
-      `${feriasDias} dia(s) de ferias neste periodo: ${formatarMoeda(feriasValorBase + feriasTercoConstitucional)} ja pago(s) via adiantamento de ferias, descontado(s) do liquido deste holerite`
+      `${feriasDias} dia(s) de ferias neste periodo: ${formatarMoeda(adiantamentoFerias)} ja pago(s) via adiantamento de ferias (descontado do liquido), com ${formatarMoeda(compensacaoProvisaoInss)} de provisao de INSS ja retida no recibo compensada aqui`
     );
   }
 
@@ -235,6 +243,7 @@ export function calcularHolerite(
     feriasValorBase,
     feriasTercoConstitucional,
     adiantamentoFerias,
+    compensacaoProvisaoInss,
     inss,
     fgts,
     liquido,
