@@ -37,7 +37,12 @@ export default async function MeuHoleritePage({
   const temSeparacao = holerite
     ? holerite.valorHorasExtras50 !== undefined && holerite.valorHorasExtras100 !== undefined
     : false;
-  const totalVencimentos = holerite ? holerite.salarioBase + holerite.valorHorasExtras : 0;
+  const feriasValorBase = holerite?.feriasValorBase ?? 0;
+  const feriasTerco = holerite?.feriasTercoConstitucional ?? 0;
+  const descontoDiasFerias = holerite?.descontoDiasFerias ?? 0;
+  const adiantamentoFerias = holerite?.adiantamentoFerias ?? 0;
+  const totalVencimentos = holerite ? holerite.salarioBase + holerite.valorHorasExtras + feriasValorBase + feriasTerco : 0;
+  const totalDescontos = holerite ? holerite.inss + holerite.descontoFaltas + descontoDiasFerias + adiantamentoFerias : 0;
 
   return (
     <div>
@@ -129,6 +134,23 @@ export default async function MeuHoleritePage({
                 )
               )}
 
+              {feriasValorBase > 0 && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2">Ferias - Gozadas no mes</td>
+                  <td className="text-right">{holerite.feriasDias}d</td>
+                  <td className="text-right">{currency(feriasValorBase)}</td>
+                  <td className="text-right">-</td>
+                </tr>
+              )}
+              {feriasTerco > 0 && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2">Ferias - Adicional 1/3</td>
+                  <td className="text-right">-</td>
+                  <td className="text-right">{currency(feriasTerco)}</td>
+                  <td className="text-right">-</td>
+                </tr>
+              )}
+
               {holerite.descontoFaltas > 0 && (
                 <tr className="border-b border-gray-200">
                   <td className="py-2">Desconto de Faltas</td>
@@ -137,12 +159,28 @@ export default async function MeuHoleritePage({
                   <td className="text-right text-red-600">{currency(holerite.descontoFaltas)}</td>
                 </tr>
               )}
+              {descontoDiasFerias > 0 && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2">Desconto Dias de Ferias</td>
+                  <td className="text-right">-</td>
+                  <td className="text-right">-</td>
+                  <td className="text-right text-red-600">{currency(descontoDiasFerias)}</td>
+                </tr>
+              )}
               <tr className="border-b border-gray-200">
                 <td className="py-2">INSS</td>
                 <td className="text-right">-</td>
                 <td className="text-right">-</td>
                 <td className="text-right text-red-600">{currency(holerite.inss)}</td>
               </tr>
+              {adiantamentoFerias > 0 && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-2">Adiantamento de Ferias</td>
+                  <td className="text-right">-</td>
+                  <td className="text-right">-</td>
+                  <td className="text-right text-red-600">{currency(adiantamentoFerias)}</td>
+                </tr>
+              )}
             </tbody>
           </table>
 
@@ -153,7 +191,7 @@ export default async function MeuHoleritePage({
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-500">Total de Descontos</p>
-              <p className="font-bold text-lg text-red-600">{currency(holerite.inss + holerite.descontoFaltas)}</p>
+              <p className="font-bold text-lg text-red-600">{currency(totalDescontos)}</p>
             </div>
           </div>
 

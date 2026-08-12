@@ -28,6 +28,21 @@
 // fixo, e tratado como "dia extra" - hora trabalhada nele conta inteira
 // como hora extra com o percentual maior (heDomingoFeriadoPercent), e a
 // ausencia nele NAO conta como falta no calculo de desconto.
+//
+// Ferias que caem dentro deste periodo de folha: o valor de cada gozo
+// (valorBase + tercoConstitucional, calculado e congelado no momento do
+// registro em /api/ferias) e rateado pelos dias corridos do gozo que caem
+// dentro deste periodo especifico - um gozo que atravessa dois meses (ex:
+// 26/08 a 04/09) aparece parcialmente em cada folha, proporcional aos dias
+// de cada mes. Esse valor rateado entra como vencimento (transparencia de
+// quanto da remuneracao do mes e composta por ferias, inclusive pra base
+// do INSS) e sai de novo como desconto "Adiantamento de ferias", ja que
+// esse valor e pago diretamente ao colaborador quando as ferias sao
+// concedidas (Art. 145 CLT), nao de novo por aqui. O salario tambem e
+// reduzido (descontoDiasFerias) pelos dias da escala normal cobertos por
+// ferias no periodo, do mesmo jeito que uma falta reduziria - pra nao
+// pagar esses dias duas vezes (uma vez como ferias, outra como salario
+// normal).
 
 import { classificarHorasRegistro } from './registro';
 import { isDiaExtra, DIAS_TRABALHO_PADRAO } from './diasTrabalho';
@@ -57,6 +72,20 @@ function formatarDataBR(dataISO: string): string {
   return `${dia}/${mes}`;
 }
 
+function formatarMoeda(valor: number): string {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+/** Numero de dias corridos (inclusive) de sobreposicao entre dois intervalos de data; 0 se nao ha sobreposicao */
+function diasSobrepostos(aInicio: string, aFim: string, bInicio: string, bFim: string): number {
+  const inicio = aInicio > bInicio ? aInicio : bInicio;
+  const fim = aFim < bFim ? aFim : bFim;
+  if (fim < inicio) return 0;
+  const inicioMs = new Date(inicio + 'T12:00:00').getTime();
+  const fimMs = new Date(fim + 'T12:00:00').getTime();
+  return Math.round((fimMs - inicioMs) / 86_400_000) + 1;
+}
+
 export interface ResultadoCalculoHolerite {
   holerite: Omit<Holerite, 'id'>;
   avisos: string[];
@@ -78,7 +107,7 @@ export function calcularHolerite(
   mesReferencia: string,
   periodo: PeriodoFolha,
   hoje: Date = new Date(),
-  gozosFeriasDoPeriodo: Pick<GozoFerias, 'inicio' | 'fim'>[] = []
+  gozosFeriasDoPeriodo: Pick<GozoFerias, 'inicio' | 'fim' | 'dias' | 'valorBase' | 'tercoConstitucional'>[] = []
 ): ResultadoCalculoHolerite {
   const avisos: string[] = [];
 
@@ -130,6 +159,7 @@ export function calcularHolerite(
   const diasUteisEsperados = listarDiasUteisEsperados(periodo.inicio, ateData, diasTrabalho);
   const datasFaltantes = diasUteisEsperados.filter((d) => !datasTrabalhadas.has(d) && !datasEmFerias.has(d));
   const faltas = datasFaltantes.length;
+  const diasEmFeriasNoPeriodo = diasUteisEsperados.filter((d) => datasEmFerias.has(d)).length;
 
   const divisorMensal = (colaborador.cargaHoraria * diasTrabalho.length * 30) / 7;
   const valorHora = colaborador.salarioBase / divisorMensal;
@@ -138,14 +168,29 @@ export function calcularHolerite(
   const valorHorasExtras100 = totalHorasExtrasDomingoFeriado * valorHora * (1 + regras.heDomingoFeriadoPercent / 100);
 
   const descontoFaltas = faltas * colaborador.cargaHoraria * valorHora * (regras.descontoFaltaPercent / 100);
+  const descontoDiasFerias = diasEmFeriasNoPeriodo * colaborador.cargaHoraria * valorHora;
+
+  let feriasDias = 0;
+  let feriasValorBase = 0;
+  let feriasTercoConstitucional = 0;
+  for (const gozo of gozosFeriasDoPeriodo) {
+    const sobrepostos = diasSobrepostos(gozo.inicio, gozo.fim, periodo.inicio, ateData);
+    if (sobrepostos <= 0) continue;
+    const fracao = sobrepostos / gozo.dias;
+    feriasDias += sobrepostos;
+    feriasValorBase += gozo.valorBase * fracao;
+    feriasTercoConstitucional += gozo.tercoConstitucional * fracao;
+  }
+  const adiantamentoFerias = feriasValorBase + feriasTercoConstitucional;
 
   const remuneracaoBruta =
-    colaborador.salarioBase + valorHorasExtras50 + valorHorasExtras100 - descontoFaltas;
+    colaborador.salarioBase - descontoDiasFerias + valorHorasExtras50 + valorHorasExtras100 -
+    descontoFaltas + feriasValorBase + feriasTercoConstitucional;
 
   const inss = calcularINSS(remuneracaoBruta);
   const fgts = remuneracaoBruta * 0.08; // informativo - pago pelo empregador, nao deduzido do liquido
 
-  const liquido = remuneracaoBruta - inss;
+  const liquido = remuneracaoBruta - inss - adiantamentoFerias;
 
   if (faltas > 0) {
     const datasFormatadas = datasFaltantes.map(formatarDataBR);
@@ -156,9 +201,10 @@ export function calcularHolerite(
     avisos.push(`${faltas} falta(s) nao justificada(s) detectada(s) neste periodo (dias da escala normal): ${listaTexto}`);
   }
 
-  const diasEmFeriasNoPeriodo = diasUteisEsperados.filter((d) => datasEmFerias.has(d)).length;
-  if (diasEmFeriasNoPeriodo > 0) {
-    avisos.push(`${diasEmFeriasNoPeriodo} dia(s) da escala normal neste periodo caem em ferias registradas - nao contados como falta`);
+  if (feriasDias > 0) {
+    avisos.push(
+      `${feriasDias} dia(s) de ferias neste periodo: ${formatarMoeda(feriasValorBase + feriasTercoConstitucional)} ja pago(s) via adiantamento de ferias, descontado(s) do liquido deste holerite`
+    );
   }
 
   const holerite: Omit<Holerite, 'id'> = {
@@ -177,6 +223,11 @@ export function calcularHolerite(
     valorHorasExtras100,
     valorHorasExtras: valorHorasExtras50 + valorHorasExtras100,
     descontoFaltas,
+    descontoDiasFerias,
+    feriasDias,
+    feriasValorBase,
+    feriasTercoConstitucional,
+    adiantamentoFerias,
     inss,
     fgts,
     liquido,

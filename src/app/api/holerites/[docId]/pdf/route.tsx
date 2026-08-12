@@ -44,8 +44,12 @@ function formatDateBR(dataISO: string) {
 
 function HoleritePDF({ holerite, colaborador }: { holerite: Holerite; colaborador: Colaborador }) {
   const totalHE = holerite.totalHorasExtras + holerite.totalHorasExtrasDomingoFeriado;
-  const totalVencimentos = holerite.salarioBase + holerite.valorHorasExtras;
-  const totalDescontos = holerite.inss + holerite.descontoFaltas;
+  const feriasValorBase = holerite.feriasValorBase ?? 0;
+  const feriasTerco = holerite.feriasTercoConstitucional ?? 0;
+  const descontoDiasFerias = holerite.descontoDiasFerias ?? 0;
+  const adiantamentoFerias = holerite.adiantamentoFerias ?? 0;
+  const totalVencimentos = holerite.salarioBase + holerite.valorHorasExtras + feriasValorBase + feriasTerco;
+  const totalDescontos = holerite.inss + holerite.descontoFaltas + descontoDiasFerias + adiantamentoFerias;
   const temSeparacao = holerite.valorHorasExtras50 !== undefined && holerite.valorHorasExtras100 !== undefined;
 
   return (
@@ -117,12 +121,47 @@ function HoleritePDF({ holerite, colaborador }: { holerite: Holerite; colaborado
             )
           )}
 
+          {feriasValorBase > 0 && (
+            <View style={styles.tableRow}>
+              <Text style={styles.colDescricao}>Ferias - Gozadas no mes</Text>
+              <Text style={styles.colReferencia}>{holerite.feriasDias}d</Text>
+              <Text style={styles.colVencimento}>{currency(feriasValorBase)}</Text>
+              <Text style={styles.colDesconto}>-</Text>
+            </View>
+          )}
+          {feriasTerco > 0 && (
+            <View style={styles.tableRow}>
+              <Text style={styles.colDescricao}>Ferias - Adicional 1/3</Text>
+              <Text style={styles.colReferencia}>-</Text>
+              <Text style={styles.colVencimento}>{currency(feriasTerco)}</Text>
+              <Text style={styles.colDesconto}>-</Text>
+            </View>
+          )}
+
           {holerite.descontoFaltas > 0 && (
             <View style={styles.tableRow}>
               <Text style={styles.colDescricao}>Desconto de Faltas</Text>
               <Text style={styles.colReferencia}>-</Text>
               <Text style={styles.colVencimento}>-</Text>
               <Text style={styles.colDesconto}>{currency(holerite.descontoFaltas)}</Text>
+            </View>
+          )}
+
+          {descontoDiasFerias > 0 && (
+            <View style={styles.tableRow}>
+              <Text style={styles.colDescricao}>Desconto Dias de Ferias</Text>
+              <Text style={styles.colReferencia}>-</Text>
+              <Text style={styles.colVencimento}>-</Text>
+              <Text style={styles.colDesconto}>{currency(descontoDiasFerias)}</Text>
+            </View>
+          )}
+
+          {adiantamentoFerias > 0 && (
+            <View style={styles.tableRow}>
+              <Text style={styles.colDescricao}>Adiantamento de Ferias</Text>
+              <Text style={styles.colReferencia}>-</Text>
+              <Text style={styles.colVencimento}>-</Text>
+              <Text style={styles.colDesconto}>{currency(adiantamentoFerias)}</Text>
             </View>
           )}
 

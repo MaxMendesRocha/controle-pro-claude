@@ -130,16 +130,41 @@ export default async function HoleritesPage({
                   )
                 )}
 
+                {(h.feriasValorBase ?? 0) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted">Ferias - Gozadas no mes ({h.feriasDias}d)</span>
+                    <span className="font-medium text-positive">+ {currency(h.feriasValorBase)}</span>
+                  </div>
+                )}
+                {(h.feriasTercoConstitucional ?? 0) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted">Ferias - Adicional 1/3</span>
+                    <span className="font-medium text-positive">+ {currency(h.feriasTercoConstitucional)}</span>
+                  </div>
+                )}
+
                 {h.descontoFaltas > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted">Desconto Faltas</span>
                     <span className="font-medium text-critical">- {currency(h.descontoFaltas)}</span>
                   </div>
                 )}
+                {(h.descontoDiasFerias ?? 0) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted">Desconto Dias de Ferias</span>
+                    <span className="font-medium text-critical">- {currency(h.descontoDiasFerias)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted">INSS</span>
                   <span className="font-medium text-critical">- {currency(h.inss)}</span>
                 </div>
+                {(h.adiantamentoFerias ?? 0) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted">Adiantamento de Ferias</span>
+                    <span className="font-medium text-critical">- {currency(h.adiantamentoFerias)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-xs text-faint">
                   <span>FGTS (informativo, pago pelo empregador)</span>
                   <span>{currency(h.fgts)}</span>
