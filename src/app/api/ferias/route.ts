@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
-import { calcularPeriodosFeriasCompleto } from '@/lib/calculos/ferias';
+import { calcularPeriodosFeriasCompleto, calcularValorFerias } from '@/lib/calculos/ferias';
 import { DIAS_TRABALHO_PADRAO } from '@/lib/calculos/diasTrabalho';
 import type { Colaborador, GozoFerias, RegistroPonto } from '@/types';
 
@@ -85,6 +85,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const pagamentoEmDobro = periodo.status === 'vencido';
+  const { valorBase, tercoConstitucional, valorTotal } = calcularValorFerias(
+    colaborador.salarioBase,
+    dias,
+    pagamentoEmDobro
+  );
+
   const docRef = empresaRef.collection('feriasGozos').doc();
   const gozo: GozoFerias = {
     id: docRef.id,
@@ -94,6 +101,10 @@ export async function POST(request: NextRequest) {
     inicio,
     fim,
     dias,
+    valorBase,
+    tercoConstitucional,
+    valorTotal,
+    pagamentoEmDobro,
     ...(observacao?.trim() ? { observacao: observacao.trim() } : {}),
     registradoPor: user.uid,
     registradoEm: new Date().toISOString(),

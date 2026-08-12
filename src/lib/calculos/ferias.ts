@@ -178,3 +178,24 @@ export function calcularPeriodosFeriasCompleto(
 
   return calcularPeriodosFerias(colaborador.admissao, hoje, { diasGozadosPorPeriodo, faltasPorPeriodo });
 }
+
+export interface ValorFerias {
+  /** 1/30 do salario por dia gozado (CLT Art. 142), ja em dobro se pagamentoEmDobro */
+  valorBase: number;
+  /** 1/3 constitucional sobre o valor base (CF/88 Art. 7 XVII) */
+  tercoConstitucional: number;
+  valorTotal: number;
+}
+
+/**
+ * Valor monetario de um gozo de ferias. Quando o periodo aquisitivo ja
+ * estava vencido no momento da concessao (prazo do periodo concessivo
+ * expirado sem conceder as ferias), o pagamento e em dobro - inclusive o
+ * terco constitucional (CLT Art. 137, Sumula 81 TST).
+ */
+export function calcularValorFerias(salarioBase: number, dias: number, pagamentoEmDobro: boolean): ValorFerias {
+  const multiplicador = pagamentoEmDobro ? 2 : 1;
+  const valorBase = (salarioBase / 30) * dias * multiplicador;
+  const tercoConstitucional = valorBase / 3;
+  return { valorBase, tercoConstitucional, valorTotal: valorBase + tercoConstitucional };
+}

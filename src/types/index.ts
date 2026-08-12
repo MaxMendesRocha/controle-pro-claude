@@ -95,6 +95,14 @@ export interface GozoFerias {
   inicio: string; // YYYY-MM-DD
   fim: string; // YYYY-MM-DD (inclusive)
   dias: number;
+  /** valor de 1/30 do salario x dias (CLT Art. 142), na data do registro */
+  valorBase: number;
+  /** 1/3 constitucional sobre o valor base (CF/88 Art. 7 XVII) */
+  tercoConstitucional: number;
+  /** valorBase + tercoConstitucional, ja em dobro se pagamentoEmDobro */
+  valorTotal: number;
+  /** true se o periodo aquisitivo ja estava vencido (concessivo expirado) no momento do registro - da direito a pagamento em dobro (CLT Art. 137, Sumula 81 TST) */
+  pagamentoEmDobro: boolean;
   observacao?: string;
   registradoPor: string; // uid do gestor que registrou
   registradoEm: string; // ISO timestamp

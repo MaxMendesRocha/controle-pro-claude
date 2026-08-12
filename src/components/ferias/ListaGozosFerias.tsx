@@ -44,6 +44,8 @@ export function ListaGozosFerias({
     router.refresh();
   }
 
+  const currency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
   return (
     <div className="space-y-2">
       {gozos.map((g) => (
@@ -55,6 +57,16 @@ export function ListaGozosFerias({
             <p className="text-xs text-faint">
               Periodo {g.periodoIndice + 1}{g.observacao ? ` - ${g.observacao}` : ''}
             </p>
+            {g.valorTotal !== undefined && (
+              <p className="text-xs text-muted mt-0.5">
+                {currency(g.valorTotal)} <span className="text-faint">(inclui 1/3 constitucional)</span>
+                {g.pagamentoEmDobro && (
+                  <span className="ml-1.5 rounded px-1.5 py-0.5 text-[10px] font-medium bg-critical-soft text-critical">
+                    Dobrado - Art. 137 CLT
+                  </span>
+                )}
+              </p>
+            )}
           </div>
           {editavel && (
             <button
