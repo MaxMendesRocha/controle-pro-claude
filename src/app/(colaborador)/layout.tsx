@@ -5,6 +5,7 @@ const NAV_ITEMS: AppNavItem[] = [
   { href: '/meu-ponto', label: 'Meu Ponto', icon: 'registros' },
   { href: '/meus-registros', label: 'Registros', icon: 'lista' },
   { href: '/meu-holerite', label: 'Holerite', icon: 'holerites' },
+  { href: '/minhas-ferias', label: 'Ferias', icon: 'ferias' },
 ];
 
 export default async function ColaboradorLayout({ children }: { children: React.ReactNode }) {
