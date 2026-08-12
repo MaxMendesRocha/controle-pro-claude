@@ -72,6 +72,12 @@ export function ListaGozosFerias({
                 )}
               </p>
             )}
+            <a
+              href={`/api/ferias/${g.id}/recibo`}
+              className="mt-1 inline-block text-xs font-medium text-accent hover:text-accent-ink"
+            >
+              Emitir Recibo
+            </a>
           </div>
           {editavel && (
             <button
