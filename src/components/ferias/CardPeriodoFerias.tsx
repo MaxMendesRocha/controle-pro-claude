@@ -60,9 +60,15 @@ export function CardPeriodoFerias({
         </div>
       </div>
 
-      {periodo.status !== 'aquisitivo' && (
+      {periodo.status === 'concessivo' && (
         <p className="mt-2 text-xs text-faint">
           Prazo para conceder: ate {formatDateBR(periodo.concessivoFim)}
+        </p>
+      )}
+
+      {periodo.status === 'vencido' && periodo.saldoDias > 0 && (
+        <p className="mt-2 text-xs text-critical">
+          Prazo encerrado em {formatDateBR(periodo.concessivoFim)} - o saldo restante deve ser pago em dobro ao ser concedido (Art. 137 CLT)
         </p>
       )}
 
@@ -153,6 +159,11 @@ function ModalRegistrarGozo({
           <p className="text-xs text-faint">
             Periodo {periodo.indice + 1} - saldo disponivel: {periodo.saldoDias} dia(s)
           </p>
+          {periodo.status === 'vencido' && (
+            <p className="text-xs text-critical">
+              Este periodo esta vencido - o pagamento sera em dobro (Art. 137 CLT)
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
