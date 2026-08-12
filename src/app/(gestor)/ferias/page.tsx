@@ -1,11 +1,12 @@
 // src/app/(gestor)/ferias/page.tsx
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
-import { calcularPeriodosFerias } from '@/lib/calculos/ferias';
+import { calcularPeriodosFeriasCompleto } from '@/lib/calculos/ferias';
+import { DIAS_TRABALHO_PADRAO } from '@/lib/calculos/diasTrabalho';
 import { FiltroFerias } from '@/components/ferias/FiltroFerias';
 import { CardPeriodoFerias } from '@/components/ferias/CardPeriodoFerias';
 import { ListaGozosFerias } from '@/components/ferias/ListaGozosFerias';
-import type { Colaborador, GozoFerias } from '@/types';
+import type { Colaborador, GozoFerias, RegistroPonto } from '@/types';
 
 export default async function FeriasPage({
   searchParams,
@@ -28,23 +29,22 @@ export default async function FeriasPage({
   const colaborador = colaboradores.find((c) => c.uid === colaboradorIdFiltro);
 
   let gozos: GozoFerias[] = [];
+  let periodos: ReturnType<typeof calcularPeriodosFeriasCompleto> = [];
+
   if (colaborador) {
-    const gozosSnap = await empresaRef
-      .collection('feriasGozos')
-      .where('colaboradorId', '==', colaborador.uid)
-      .get();
+    const [gozosSnap, registrosSnap] = await Promise.all([
+      empresaRef.collection('feriasGozos').where('colaboradorId', '==', colaborador.uid).get(),
+      empresaRef.collection('registros').where('colaboradorId', '==', colaborador.uid).get(),
+    ]);
     gozos = gozosSnap.docs.map((d) => d.data() as GozoFerias);
     gozos.sort((a, b) => b.inicio.localeCompare(a.inicio));
-  }
 
-  const diasGozadosPorPeriodo: Record<number, number> = {};
-  for (const g of gozos) {
-    diasGozadosPorPeriodo[g.periodoIndice] = (diasGozadosPorPeriodo[g.periodoIndice] ?? 0) + g.dias;
-  }
+    const registros = registrosSnap.docs.map((d) => d.data() as RegistroPonto);
+    const hoje = new Date().toISOString().slice(0, 10);
+    const diasTrabalho = colaborador.diasTrabalho?.length ? colaborador.diasTrabalho : DIAS_TRABALHO_PADRAO;
 
-  const periodos = colaborador
-    ? calcularPeriodosFerias(colaborador.admissao, undefined, { diasGozadosPorPeriodo })
-    : [];
+    periodos = calcularPeriodosFeriasCompleto({ admissao: colaborador.admissao, diasTrabalho }, hoje, registros, gozos);
+  }
 
   return (
     <div>

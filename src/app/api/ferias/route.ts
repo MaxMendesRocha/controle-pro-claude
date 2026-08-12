@@ -2,8 +2,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { getSessionUser } from '@/lib/auth/session';
-import { calcularPeriodosFerias } from '@/lib/calculos/ferias';
-import type { Colaborador, GozoFerias } from '@/types';
+import { calcularPeriodosFeriasCompleto } from '@/lib/calculos/ferias';
+import { DIAS_TRABALHO_PADRAO } from '@/lib/calculos/diasTrabalho';
+import type { Colaborador, GozoFerias, RegistroPonto } from '@/types';
 
 const DIAS_MINIMOS_POR_GOZO = 5; // CLT Art. 134 SS1 - nenhum periodo de fracionamento pode ser menor que isso
 
@@ -45,9 +46,10 @@ export async function POST(request: NextRequest) {
 
   const empresaRef = adminDb.collection('empresas').doc(user.empresaId);
 
-  const [colabDoc, gozosSnap] = await Promise.all([
+  const [colabDoc, gozosSnap, registrosSnap] = await Promise.all([
     empresaRef.collection('colaboradores').doc(colaboradorId).get(),
     empresaRef.collection('feriasGozos').where('colaboradorId', '==', colaboradorId).get(),
+    empresaRef.collection('registros').where('colaboradorId', '==', colaboradorId).get(),
   ]);
 
   if (!colabDoc.exists) {
@@ -55,18 +57,16 @@ export async function POST(request: NextRequest) {
   }
   const colaborador = colabDoc.data() as Colaborador;
   const gozosExistentes = gozosSnap.docs.map((d) => ({ ...d.data(), id: d.id }) as GozoFerias);
+  const registros = registrosSnap.docs.map((d) => d.data() as RegistroPonto);
 
   const sobreposto = gozosExistentes.some((g) => inicio <= g.fim && fim >= g.inicio);
   if (sobreposto) {
     return NextResponse.json({ error: 'Ja existe um gozo de ferias registrado nesse intervalo' }, { status: 409 });
   }
 
-  const diasGozadosPorPeriodo: Record<number, number> = {};
-  for (const g of gozosExistentes) {
-    diasGozadosPorPeriodo[g.periodoIndice] = (diasGozadosPorPeriodo[g.periodoIndice] ?? 0) + g.dias;
-  }
-
-  const periodos = calcularPeriodosFerias(colaborador.admissao, undefined, { diasGozadosPorPeriodo });
+  const hoje = new Date().toISOString().slice(0, 10);
+  const diasTrabalho = colaborador.diasTrabalho?.length ? colaborador.diasTrabalho : DIAS_TRABALHO_PADRAO;
+  const periodos = calcularPeriodosFeriasCompleto({ admissao: colaborador.admissao, diasTrabalho }, hoje, registros, gozosExistentes);
   const periodo = periodos.find((p) => p.indice === periodoIndice);
 
   if (!periodo) {

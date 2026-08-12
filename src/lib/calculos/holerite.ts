@@ -31,8 +31,9 @@
 
 import { classificarHorasRegistro } from './registro';
 import { isDiaExtra, DIAS_TRABALHO_PADRAO } from './diasTrabalho';
+import { datasCobertasPorGozos, listarDiasUteisEsperados } from './faltas';
 import type { PeriodoFolha } from './periodo';
-import type { Colaborador, RegistroPonto, RegrasCalculo, Holerite, DiaDaSemana } from '@/types';
+import type { Colaborador, RegistroPonto, RegrasCalculo, Holerite, DiaDaSemana, GozoFerias } from '@/types';
 
 
 /** Tabela INSS progressiva (valores de referencia - conferir atualizacao anual) */
@@ -49,21 +50,6 @@ function formatarData(data: Date): string {
   const mes = String(data.getMonth() + 1).padStart(2, '0');
   const dia = String(data.getDate()).padStart(2, '0');
   return `${ano}-${mes}-${dia}`;
-}
-
-/** Lista as datas (YYYY-MM-DD) de trabalho normal esperadas (segundo a escala do colaborador) entre inicio e fim, inclusive */
-function listarDiasUteisEsperados(inicio: string, fim: string, diasTrabalho: DiaDaSemana[]): string[] {
-  const datas: string[] = [];
-  const cursor = new Date(inicio + 'T12:00:00');
-  const fimDate = new Date(fim + 'T12:00:00');
-
-  while (cursor <= fimDate) {
-    const dataStr = formatarData(cursor);
-    if (!isDiaExtra(dataStr, diasTrabalho)) datas.push(dataStr);
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  return datas;
 }
 
 function formatarDataBR(dataISO: string): string {
@@ -91,7 +77,8 @@ export function calcularHolerite(
   regras: RegrasCalculo,
   mesReferencia: string,
   periodo: PeriodoFolha,
-  hoje: Date = new Date()
+  hoje: Date = new Date(),
+  gozosFeriasDoPeriodo: Pick<GozoFerias, 'inicio' | 'fim'>[] = []
 ): ResultadoCalculoHolerite {
   const avisos: string[] = [];
 
@@ -135,12 +122,13 @@ export function calcularHolerite(
 
   const hojeStr = formatarData(hoje);
   const ateData = hojeStr < periodo.fim ? hojeStr : periodo.fim;
-  const diasUteisEsperados = listarDiasUteisEsperados(periodo.inicio, ateData, diasTrabalho);
 
   const datasTrabalhadas = new Set(
     registrosCompletos.filter((r) => !isDiaExtra(r.data, diasTrabalho)).map((r) => r.data)
   );
-  const datasFaltantes = diasUteisEsperados.filter((d) => !datasTrabalhadas.has(d));
+  const datasEmFerias = datasCobertasPorGozos(gozosFeriasDoPeriodo);
+  const diasUteisEsperados = listarDiasUteisEsperados(periodo.inicio, ateData, diasTrabalho);
+  const datasFaltantes = diasUteisEsperados.filter((d) => !datasTrabalhadas.has(d) && !datasEmFerias.has(d));
   const faltas = datasFaltantes.length;
 
   const divisorMensal = (colaborador.cargaHoraria * diasTrabalho.length * 30) / 7;
@@ -166,6 +154,11 @@ export function calcularHolerite(
       ? `${datasFormatadas.slice(0, LIMITE_EXIBICAO).join(', ')} e mais ${datasFormatadas.length - LIMITE_EXIBICAO} dia(s)`
       : datasFormatadas.join(', ');
     avisos.push(`${faltas} falta(s) nao justificada(s) detectada(s) neste periodo (dias da escala normal): ${listaTexto}`);
+  }
+
+  const diasEmFeriasNoPeriodo = diasUteisEsperados.filter((d) => datasEmFerias.has(d)).length;
+  if (diasEmFeriasNoPeriodo > 0) {
+    avisos.push(`${diasEmFeriasNoPeriodo} dia(s) da escala normal neste periodo caem em ferias registradas - nao contados como falta`);
   }
 
   const holerite: Omit<Holerite, 'id'> = {

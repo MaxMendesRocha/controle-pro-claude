@@ -13,8 +13,12 @@
 //   futura).
 // - Dias de direito: 30 dias corridos por periodo aquisitivo, reduzidos
 //   conforme o numero de faltas injustificadas nesse periodo (Art. 130).
-//   Como o app ainda nao rastreia faltas injustificadas, o padrao e 0 faltas
-//   (30 dias de direito) ate essa informacao existir.
+//   `calcularFaltasPorPeriodo` deriva essas faltas a partir dos registros de
+//   ponto e dos gozos de ferias ja registrados (ver faltas.ts).
+
+import { calcularFaltas, datasCobertasPorGozos } from './faltas';
+import { isDiaExtra } from './diasTrabalho';
+import type { DiaDaSemana } from '@/types';
 
 export type StatusPeriodoFerias = 'aquisitivo' | 'concessivo' | 'vencido';
 
@@ -116,4 +120,61 @@ export function calcularPeriodosFerias(
   }
 
   return periodos;
+}
+
+/**
+ * Conta as faltas injustificadas dentro de cada periodo aquisitivo (ate hoje,
+ * para o periodo em andamento), para alimentar `faltasPorPeriodo` em
+ * calcularPeriodosFerias. Chame calcularPeriodosFerias uma primeira vez (sem
+ * faltasPorPeriodo) so para obter os limites de data de cada periodo, depois
+ * use o resultado aqui e chame de novo com o resultado desta funcao.
+ */
+export function calcularFaltasPorPeriodo(
+  periodos: Pick<PeriodoFerias, 'indice' | 'aquisitivoInicio' | 'aquisitivoFim'>[],
+  hoje: string,
+  diasTrabalho: DiaDaSemana[],
+  datasTrabalhadas: Set<string>,
+  datasEmFerias: Set<string> = new Set()
+): Record<number, number> {
+  const faltasPorPeriodo: Record<number, number> = {};
+
+  for (const p of periodos) {
+    const ate = hoje < p.aquisitivoFim ? hoje : p.aquisitivoFim;
+    if (ate < p.aquisitivoInicio) continue;
+
+    const { faltas } = calcularFaltas(p.aquisitivoInicio, ate, diasTrabalho, datasTrabalhadas, datasEmFerias);
+    faltasPorPeriodo[p.indice] = faltas;
+  }
+
+  return faltasPorPeriodo;
+}
+
+/**
+ * Combina calcularPeriodosFerias + calcularFaltasPorPeriodo num unico
+ * calculo pronto pra uso, a partir dos registros de ponto e gozos de ferias
+ * brutos do colaborador. Funcao pura - quem chama e responsavel por buscar
+ * esses dados no banco.
+ */
+export function calcularPeriodosFeriasCompleto(
+  colaborador: { admissao: string; diasTrabalho: DiaDaSemana[] },
+  hoje: string,
+  registros: { data: string; entrada: string | null; saida: string | null }[],
+  gozos: { periodoIndice: number; inicio: string; fim: string; dias: number }[]
+): PeriodoFerias[] {
+  const diasGozadosPorPeriodo: Record<number, number> = {};
+  for (const g of gozos) {
+    diasGozadosPorPeriodo[g.periodoIndice] = (diasGozadosPorPeriodo[g.periodoIndice] ?? 0) + g.dias;
+  }
+
+  const periodosBase = calcularPeriodosFerias(colaborador.admissao, hoje, { diasGozadosPorPeriodo });
+
+  const datasTrabalhadas = new Set(
+    registros
+      .filter((r) => r.entrada && r.saida && !isDiaExtra(r.data, colaborador.diasTrabalho))
+      .map((r) => r.data)
+  );
+  const datasEmFerias = datasCobertasPorGozos(gozos);
+  const faltasPorPeriodo = calcularFaltasPorPeriodo(periodosBase, hoje, colaborador.diasTrabalho, datasTrabalhadas, datasEmFerias);
+
+  return calcularPeriodosFerias(colaborador.admissao, hoje, { diasGozadosPorPeriodo, faltasPorPeriodo });
 }
