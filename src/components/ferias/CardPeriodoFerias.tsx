@@ -27,7 +27,7 @@ export function CardPeriodoFerias({
 }) {
   const [registrando, setRegistrando] = useState(false);
   const status = STATUS_INFO[periodo.status];
-  const podeRegistrar = Boolean(colaborador) && periodo.status !== 'aquisitivo' && periodo.saldoDias > 0;
+  const podeRegistrar = Boolean(colaborador) && periodo.saldoDias > 0;
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-4">
@@ -78,7 +78,7 @@ export function CardPeriodoFerias({
             onClick={() => setRegistrando(true)}
             className="text-sm font-medium text-accent hover:text-accent-ink"
           >
-            Registrar ferias
+            {periodo.status === 'aquisitivo' ? 'Antecipar ferias' : 'Registrar ferias'}
           </button>
         </div>
       )}
@@ -108,8 +108,11 @@ function ModalRegistrarGozo({
   const [inicio, setInicio] = useState('');
   const [fim, setFim] = useState('');
   const [observacao, setObservacao] = useState('');
+  const [cienteAntecipacao, setCienteAntecipacao] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+
+  const antecipando = periodo.status === 'aquisitivo';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -125,6 +128,7 @@ function ModalRegistrarGozo({
         inicio,
         fim,
         observacao,
+        permitirAntecipacao: antecipando,
       }),
     });
 
@@ -147,7 +151,7 @@ function ModalRegistrarGozo({
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-md">
         <div className="p-6 border-b border-border flex justify-between items-center">
-          <h3 className="text-xl font-bold text-foreground">Registrar Ferias</h3>
+          <h3 className="text-xl font-bold text-foreground">{antecipando ? 'Antecipar Ferias' : 'Registrar Ferias'}</h3>
           <button onClick={onClose} className="text-faint hover:text-muted">Fechar</button>
         </div>
 
@@ -163,6 +167,22 @@ function ModalRegistrarGozo({
             <p className="text-xs text-critical">
               Este periodo esta vencido - o pagamento sera em dobro (Art. 137 CLT)
             </p>
+          )}
+          {antecipando && (
+            <div className="rounded-lg bg-warning-soft border border-warning/30 p-3 space-y-2">
+              <p className="text-xs text-warning">
+                Este periodo aquisitivo ainda nao completou 12 meses (termina em {formatDateBR(periodo.aquisitivoFim)}) - o direito formal as ferias ainda nao foi adquirido. Isso registra uma concessao antecipada, por decisao do gestor.
+              </p>
+              <label className="flex items-start gap-2 text-xs text-muted cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={cienteAntecipacao}
+                  onChange={(e) => setCienteAntecipacao(e.target.checked)}
+                  className="mt-0.5 rounded border-border"
+                />
+                Estou ciente e confirmo a concessao antecipada
+              </label>
+            </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
@@ -191,7 +211,7 @@ function ModalRegistrarGozo({
             <button type="button" onClick={onClose} className="px-4 py-2 text-muted hover:bg-surface-hover rounded-lg transition">
               Cancelar
             </button>
-            <button type="submit" disabled={salvando} className="px-4 py-2 bg-accent hover:bg-accent/90 disabled:opacity-50 text-white rounded-lg transition">
+            <button type="submit" disabled={salvando || (antecipando && !cienteAntecipacao)} className="px-4 py-2 bg-accent hover:bg-accent/90 disabled:opacity-50 text-white rounded-lg transition">
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>
           </div>

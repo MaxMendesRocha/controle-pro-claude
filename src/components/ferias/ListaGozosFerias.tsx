@@ -65,6 +65,11 @@ export function ListaGozosFerias({
                     Dobrado - Art. 137 CLT
                   </span>
                 )}
+                {g.antecipada && (
+                  <span className="ml-1.5 rounded px-1.5 py-0.5 text-[10px] font-medium bg-warning-soft text-warning">
+                    Antecipada
+                  </span>
+                )}
               </p>
             )}
           </div>
